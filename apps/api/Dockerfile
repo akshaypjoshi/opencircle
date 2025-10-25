@@ -9,6 +9,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 RUN apt-get update && apt-get install -y \
     gcc \
     postgresql-client \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # Install uv
@@ -18,13 +19,13 @@ RUN pip install uv --no-cache-dir
 WORKDIR /app
 
 # Copy uv.lock and pyproject.toml first for better caching
-COPY uv.lock pyproject.toml ./
+COPY apps/api/uv.lock apps/api/pyproject.toml ./
 
 # Install dependencies
 RUN uv sync --frozen --no-dev --no-cache
 
 # Copy application code
-COPY . .
+COPY apps/api/ .
 
 # Create non-root user
 RUN useradd --create-home --shell /bin/bash app \
