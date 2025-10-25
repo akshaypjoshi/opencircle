@@ -97,6 +97,8 @@ services:
     build:
       context: .
       dockerfile: apps/platform/Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL}
     container_name: opencircle-platform
     ports:
       - "3000:80"
@@ -118,6 +120,8 @@ services:
     build:
       context: .
       dockerfile: apps/admin/Dockerfile
+      args:
+        - VITE_API_URL=${VITE_API_URL}
     container_name: opencircle-admin
     ports:
       - "4000:80"

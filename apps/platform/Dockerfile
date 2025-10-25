@@ -4,6 +4,10 @@ FROM node:18-alpine AS builder
 # Set working directory
 WORKDIR /app
 
+# Define build argument for API URL
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 # Copy workspace files first
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/ ./packages/
@@ -30,7 +34,9 @@ COPY apps/platform/tsconfig*.json ./apps/platform/
 
 # Build the application
 WORKDIR /app/apps/platform
-RUN pnpm build
+# Pass the build argument to the build command
+ARG VITE_API_URL
+RUN VITE_API_URL=$VITE_API_URL pnpm build
 
 # Production stage
 FROM nginx:alpine AS production
