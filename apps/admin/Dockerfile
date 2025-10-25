@@ -15,7 +15,14 @@ RUN npm install -g pnpm
 # Install dependencies
 RUN pnpm install --no-frozen-lockfile
 
+# Copy UI source and build it first
+COPY packages/ui/src ./packages/ui/src/
+COPY packages/ui/package.json ./packages/ui/
+WORKDIR /app/packages/ui
+RUN pnpm build
+
 # Copy admin source code
+WORKDIR /app
 COPY apps/admin/src ./apps/admin/src/
 COPY apps/admin/index.html ./apps/admin/
 COPY apps/admin/vite.config.ts ./apps/admin/
