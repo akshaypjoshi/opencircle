@@ -1,0 +1,6 @@
+id: ui-package
+language: typescript
+
+tasks:
+  dev:
+    command: "pnpm dev"

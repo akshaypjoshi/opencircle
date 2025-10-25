@@ -1,0 +1,27 @@
+id: api
+language: python
+
+tasks:
+  format:
+    command: "uv run ruff format ."
+
+  lint:
+    command: "uv run ruff check . && uv run ty check ."
+
+  sync:
+    command: "uv sync"
+
+  migrate:
+    command: "uv run alembic upgrade head"
+
+  dev:
+    command: "uv run uvicorn src.main:app --reload"
+
+  worker:
+    command: "uv run celery -A src.core.celery_app worker --pool=threads"
+
+  test:
+    command: "uv run pytest tests/"
+
+  seed:
+    command: "uv run python bin/seeder.py"

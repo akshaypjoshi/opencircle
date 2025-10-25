@@ -1,0 +1,6 @@
+id: core-package
+language: typescript
+
+tasks:
+  build:
+    command: "pnpm build"

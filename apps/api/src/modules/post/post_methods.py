@@ -1,0 +1,337 @@
+from collections import Counter
+from typing import List, Optional, cast
+
+from fastapi import UploadFile
+from sqlalchemy import Column, desc, text
+from sqlalchemy.orm import joinedload
+from sqlmodel import Session, select
+
+from src.database.models import Channel, Media, Post, Reaction, User
+from src.modules.channels.channels_methods import is_member
+from src.modules.storages.storage_methods import upload_file
+
+
+def filter_private_channel_posts(
+    posts: list[Post],
+    current_user_id: Optional[str] = None,
+    db: Optional[Session] = None,
+) -> list[Post]:
+    """Filter out posts from private channels where user is not a member."""
+    filtered_posts = []
+    for post in posts:
+        # If post has no channel, include it
+        if not post.channel_id:
+            filtered_posts.append(post)
+            continue
+
+        # If channel is public, include the post
+        if post.channel and post.channel.type != "private":
+            filtered_posts.append(post)
+            continue
+
+        # If channel is private and user is not provided, exclude the post
+        if not current_user_id or not db:
+            continue
+
+        # If channel is private, check if user is a member
+        if post.channel and is_member(db, post.channel_id, current_user_id):
+            filtered_posts.append(post)
+
+    return filtered_posts
+
+
+def create_post(
+    db: Session, post_data: dict, files: Optional[List[UploadFile]] = None
+) -> Post:
+    """Create a new post."""
+    post = Post(**post_data)
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+
+    # Handle file uploads if provided
+    if files:
+        for file in files:
+            url = upload_file(file)
+            media = Media(url=url, post_id=post.id, user_id=post.user_id)
+            db.add(media)
+        db.commit()
+        db.refresh(post)
+
+    return post
+
+
+def get_post(db: Session, post_id: str) -> Optional[Post]:
+    """Get a post by ID."""
+    statement = (
+        select(Post)
+        .options(
+            joinedload(Post.user), joinedload(Post.channel), joinedload(Post.medias)
+        )
+        .where(Post.id == post_id)
+    )  # type: ignore
+    post = db.exec(statement).unique().first()
+    return post
+
+
+def update_post(db: Session, post_id: str, update_data: dict) -> Optional[Post]:
+    """Update a post by ID."""
+    post = db.get(Post, post_id)
+    if not post:
+        return None
+    for key, value in update_data.items():
+        setattr(post, key, value)
+    db.commit()
+    db.refresh(post)
+    return post
+
+
+def delete_post(db: Session, post_id: str) -> bool:
+    """Delete a post by ID."""
+    post = db.get(Post, post_id)
+    if not post:
+        return False
+
+    # Delete related media records first
+    from src.database.models import Media, Reaction
+
+    media_statement = select(Media).where(Media.post_id == post_id)
+    media_records = db.exec(media_statement).all()
+    for media in media_records:
+        db.delete(media)
+
+    # Delete related reactions
+    reaction_statement = select(Reaction).where(Reaction.post_id == post_id)
+    reaction_records = db.exec(reaction_statement).all()
+    for reaction in reaction_records:
+        db.delete(reaction)
+
+    # Delete all replies (nested posts) recursively
+    replies_statement = select(Post).where(Post.parent_id == post_id)
+    replies_records = db.exec(replies_statement).all()
+    for reply in replies_records:
+        # Recursively delete each reply and its children
+        delete_post(db, reply.id)
+
+    db.delete(post)
+    db.commit()
+    return True
+
+
+def get_posts_by_user(
+    db: Session, user_id: str, current_user_id: Optional[str] = None
+) -> list[Post]:
+    """Get all posts for a user, filtering out private channel posts for non-members."""
+    statement = (
+        select(Post)
+        .options(
+            joinedload(Post.user), joinedload(Post.channel), joinedload(Post.medias)
+        )
+        .where(Post.user_id == user_id)
+        .order_by(desc(Post.created_at))
+    )  # type: ignore
+    all_posts = list(db.exec(statement).unique().all())
+    return filter_private_channel_posts(all_posts, current_user_id, db)
+
+
+def get_posts_by_type(
+    db: Session, post_type: str, current_user_id: Optional[str] = None
+) -> list[Post]:
+    """Get all posts of a specific type, filtering out private channel posts for non-members."""
+    statement = (
+        select(Post)
+        .options(
+            joinedload(Post.user), joinedload(Post.channel), joinedload(Post.medias)
+        )
+        .where(Post.type == post_type)
+        .order_by(desc(Post.created_at))
+    )  # type: ignore
+    all_posts = list(db.exec(statement).all())
+    return filter_private_channel_posts(all_posts, current_user_id, db)
+
+
+def get_posts_by_parent_id(db: Session, parent_id: str) -> list[Post]:
+    """Get all posts that are replies to a specific post."""
+    statement = (
+        select(Post)
+        .options(
+            joinedload(Post.user), joinedload(Post.channel), joinedload(Post.medias)
+        )
+        .where(Post.parent_id == parent_id)
+        .order_by(desc(Post.created_at))  # type: ignore
+    )
+    posts = list(db.exec(statement).all())
+    return posts
+
+
+def get_all_nested_posts_by_parent_id(
+    db: Session, parent_id: str, current_user_id: Optional[str] = None
+) -> list[Post]:
+    from src.database.models import PostType, Role
+
+    # Recursive CTE to fetch all nested replies for a given parent post
+    # This query builds a hierarchical tree of all comments/replies starting from the specified parent_id
+    # 1. Base case: Get direct replies to the parent post (depth = 0)
+    # 2. Recursive case: Get replies to each reply, incrementing depth level
+    # 3. Join with user table to get author information for each post
+    # 4. Join with media table to get media files for each post
+    # 5. Order by parent creation time first, then by reply creation time to maintain hierarchy
+    sql = """
+    WITH RECURSIVE reply_tree AS (
+        SELECT p.id, p.parent_id, p.created_at, p.updated_at, p.content, p.type, p.user_id, p.channel_id, 0 as depth,
+               p.created_at as parent_created_at
+        FROM post p
+        WHERE p.parent_id = :parent_id
+        UNION ALL
+        SELECT p.id, p.parent_id, p.created_at, p.updated_at, p.content, p.type, p.user_id, p.channel_id, rt.depth + 1,
+               rt.parent_created_at
+        FROM post p
+        INNER JOIN reply_tree rt ON p.parent_id = rt.id
+    )
+    SELECT rt.*,
+           u.id as user_id, u.username, u.name, u.bio, u.email, u.is_active, u.is_verified, u.avatar_url, u.role, u.created_at as user_created_at, u.updated_at as user_updated_at,
+           m.id as media_id, m.url as media_url, m.user_id as media_user_id, m.created_at as media_created_at, m.updated_at as media_updated_at
+    FROM reply_tree rt
+    LEFT JOIN "user" u ON rt.user_id = u.id
+    LEFT JOIN media m ON rt.id = m.post_id
+    ORDER BY rt.parent_created_at DESC, rt.depth ASC, rt.created_at DESC;
+    """
+    result = db.exec(text(sql).bindparams(parent_id=parent_id))
+
+    # Group results by post to handle multiple media per post
+    posts_dict = {}
+    for row in result.all():
+        post_id = row.id
+
+        # Create user object if not already created
+        user = None
+        if row.user_id:
+            user_dict = {
+                "id": row.user_id,
+                "username": row.username,
+                "name": row.name,
+                "bio": row.bio,
+                "email": row.email,
+                "is_active": row.is_active,
+                "is_verified": row.is_verified,
+                "avatar_url": row.avatar_url,
+                "role": Role(row.role.lower()) if row.role else Role.USER,
+                "created_at": row.user_created_at,
+                "updated_at": row.user_updated_at,
+            }
+            user = User(**user_dict)
+
+        # Create post if not already created
+        if post_id not in posts_dict:
+            post_dict = {
+                "id": row.id,
+                "parent_id": row.parent_id,
+                "created_at": row.created_at,
+                "updated_at": row.updated_at,
+                "content": row.content,
+                "type": PostType(row.type.lower()),
+                "user_id": row.user_id,
+                "channel_id": row.channel_id,
+                "user": user,
+                "medias": [],
+            }
+            posts_dict[post_id] = Post(**post_dict)
+
+        # Add media if present
+        if row.media_id:
+            media_dict = {
+                "id": row.media_id,
+                "url": row.media_url,
+                "post_id": post_id,
+                "user_id": row.media_user_id,
+                "created_at": row.media_created_at,
+                "updated_at": row.media_updated_at,
+            }
+            posts_dict[post_id].medias.append(Media(**media_dict))
+
+    # Convert to list and sort by creation time to show newest first
+    all_posts = list(posts_dict.values())
+    all_posts.sort(key=lambda p: p.created_at, reverse=True)
+    return filter_private_channel_posts(all_posts, current_user_id, db)
+
+
+def get_posts_by_channel_slug(db: Session, channel_slug: str) -> list[Post]:
+    """Get all posts for a channel by slug."""
+    statement = (
+        select(Post)
+        .options(
+            joinedload(Post.user), joinedload(Post.channel), joinedload(Post.medias)
+        )  # type: ignore
+        .join(Channel)
+        .where(Channel.slug == channel_slug)
+        .order_by(desc(Post.created_at))
+    )
+    posts = list(db.exec(statement).unique().all())
+    return posts
+
+
+def get_all_posts(
+    db: Session, skip: int = 0, limit: int = 100, current_user_id: Optional[str] = None
+) -> list[Post]:
+    """Get all posts with pagination, filtering out private channel posts for non-members."""
+    statement = (
+        select(Post)
+        .options(
+            joinedload(Post.user), joinedload(Post.channel), joinedload(Post.medias)
+        )  # type: ignore
+        .where(Post.type == "post")
+        .order_by(desc(Post.created_at))
+        .offset(skip)
+        .limit(limit)
+    )
+    all_posts = list(db.exec(statement).unique().all())
+    return filter_private_channel_posts(all_posts, current_user_id, db)
+
+
+def get_reactions_summary(
+    db: Session, post_id: str, current_user_id: Optional[str] = None
+) -> dict:
+    """Get reactions summary for a post."""
+    reactions = db.exec(select(Reaction).where(Reaction.post_id == post_id)).all()
+    emoji_counts = Counter(r.emoji for r in reactions)
+    user_reactions = {r.emoji for r in reactions if r.user_id == current_user_id}
+
+    summary = [
+        {"emoji": emoji, "count": count, "me": emoji in user_reactions}
+        for emoji, count in emoji_counts.items()
+    ]
+
+    user_reaction_ids = (
+        [f"{current_user_id}_emoji_{emoji}" for emoji in user_reactions]
+        if current_user_id
+        else []
+    )
+
+    return {"summary": summary, "user_reaction_ids": user_reaction_ids}
+
+
+def get_comment_summary(
+    db: Session, post_id: str, current_user_id: Optional[str] = None
+) -> dict:
+    """Get comment summary for a post."""
+    sql = """
+    WITH RECURSIVE rt AS (
+        SELECT id, user_id FROM post WHERE parent_id = :post_id
+        UNION ALL
+        SELECT p.id, p.user_id FROM post p INNER JOIN rt ON p.parent_id = rt.id
+    )
+    SELECT DISTINCT user_id FROM rt WHERE user_id IS NOT NULL
+    """
+    result = db.exec(text(sql).bindparams(post_id=post_id))
+    user_ids = [row.user_id for row in result.all()]
+
+    if not user_ids:
+        return {"count": 0, "names": []}
+
+    user_id_col = cast(Column, User.id)
+    users = db.exec(select(User).where(user_id_col.in_(user_ids))).all()
+    names = [user.name or user.username for user in users]
+
+    me = current_user_id in user_ids if current_user_id else False
+
+    return {"count": len(names), "names": names, "me": me}

@@ -1,0 +1,22 @@
+@import "@opencircle/ui/global.css";
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+
+@theme {
+    --color-primary: oklch(0.4769 0.2307 271.68);
+    --color-foreground: oklch(0.9519 0 258.37);
+    --color-background: oklch(0.1768 0.007 258.37);
+    --color-background-secondary: oklch(0.2017 0.007 258.37);
+    --color-border: oklch(0.2146 0.007 258.37)
+}
+
+@layer base {
+    html {
+        @apply bg-background text-foreground;
+    }
+
+    body {
+        height: 100%;
+        margin-bottom: 1px;
+    }
+}

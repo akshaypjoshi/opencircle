@@ -1,0 +1,9 @@
+id: platform
+language: typescript
+
+tasks:
+  dev:
+    command: "pnpm dev"
+
+  format:
+    command: "pnpm format"

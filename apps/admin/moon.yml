@@ -1,0 +1,9 @@
+id: admin
+language: typescript
+
+tasks:
+  dev:
+    command: "pnpm dev"
+
+  format:
+    command: "pnpm format"
