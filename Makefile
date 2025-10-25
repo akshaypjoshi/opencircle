@@ -25,6 +25,9 @@ docker-rebuild:
 docker-migrate:
 	docker-compose --profile migration up migration
 
+docker-tools:
+	docker-compose --profile tools up -d adminer
+
 docker-db-reset:
 	docker-compose down -v
 	docker-compose up -d postgres
