@@ -10,10 +10,10 @@ COPY packages/ ./packages/
 COPY apps/admin/package.json ./apps/admin/
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm --no-audit --no-fund
 
 # Install dependencies
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile --no-audit --no-fund
 
 # Copy admin source code
 COPY apps/admin/src ./apps/admin/src/

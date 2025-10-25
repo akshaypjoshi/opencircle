@@ -3,26 +3,28 @@ FROM python:3.12-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install system dependencies in single layer with cleanup
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
     postgresql-client \
     curl \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 # Install uv
-RUN pip install uv --no-cache-dir
+RUN pip install --no-cache-dir uv
 
 # Set working directory
 WORKDIR /app
 
-# Copy uv.lock and pyproject.toml first for better caching
+# Copy dependency files first for better caching
 COPY apps/api/uv.lock apps/api/pyproject.toml ./
 
 # Install dependencies
-RUN uv sync --frozen --no-dev --no-cache
+RUN uv sync --frozen --no-dev
 
 # Copy application code
 COPY apps/api/ .

@@ -10,6 +10,7 @@ This document describes the Docker configuration for the OpenCircle monorepo app
 - **Package Manager**: uv
 - **Port**: 8000
 - **Health Check**: `/health`
+- **Optimizations**: Non-interactive apt installs, no-install-recommends, cleanup
 
 ### Platform (React/Vite)
 - **Location**: `apps/platform/Dockerfile`
@@ -17,6 +18,7 @@ This document describes the Docker configuration for the OpenCircle monorepo app
 - **Package Manager**: pnpm
 - **Port**: 80
 - **Health Check**: `/health`
+- **Optimizations**: No audit/fund flags for faster installs
 
 ### Admin (React/Vite)
 - **Location**: `apps/admin/Dockerfile`
@@ -24,6 +26,7 @@ This document describes the Docker configuration for the OpenCircle monorepo app
 - **Package Manager**: pnpm
 - **Port**: 80
 - **Health Check**: `/health`
+- **Optimizations**: No audit/fund flags for faster installs
 
 ## Local Development
 
@@ -72,7 +75,7 @@ curl http://localhost:4001/health
 
 The repository includes GitHub Actions workflows for automated Docker image building and pushing:
 
-- **docker-build.yml**: Automated builds on push to main/develop branches and tags
+- **docker.yml**: Automated builds with change detection on push to main/develop branches and tags
 - **docker-test.yml**: Manual workflow for testing builds
 
 ### Registry
@@ -88,6 +91,13 @@ Images are pushed to GitHub Container Registry (GHCR):
 - `develop` branch: `develop`, `develop-{sha}`
 - Tags: `v1.0.0`, `v1.0`, `v1`
 - Pull requests: `pr-{number}`
+
+### Build Optimizations
+
+- **Change Detection**: Only builds apps that have changed
+- **Multi-platform**: PRs build amd64 only, branches build amd64+arm64
+- **Caching**: GitHub Actions cache for faster builds
+- **No-cache option**: Add `[no-cache]` to commit message to bypass cache
 
 ## Production Considerations
 
@@ -132,9 +142,17 @@ Images are pushed to GitHub Container Registry (GHCR):
 
 1. Make changes to application code
 2. Test locally with Docker build
-3. Push to trigger automated builds
+3. Push to trigger automated builds (workflow detects changes automatically)
 4. Monitor GitHub Actions for build status
 5. Deploy using appropriate image tags
+
+### Performance Tips
+
+- Push to trigger automated builds with change detection
+- Add `[no-cache]` to commit message to force fresh builds
+- PRs only build amd64 architecture for speed
+- Multi-platform builds only run on branch pushes and tags
+- Change detection skips unchanged apps entirely
 
 ## Best Practices
 
@@ -143,3 +161,5 @@ Images are pushed to GitHub Container Registry (GHCR):
 - Monitor image sizes and optimize builds
 - Implement proper logging and monitoring
 - Use environment-specific configurations
+- Leverage change detection for faster CI/CD
+- Use automated workflow for daily development

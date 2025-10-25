@@ -10,10 +10,10 @@ COPY packages/ ./packages/
 COPY apps/platform/package.json ./apps/platform/
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN npm install -g pnpm --no-audit --no-fund
 
 # Install dependencies
-RUN pnpm install --no-frozen-lockfile
+RUN pnpm install --no-frozen-lockfile --no-audit --no-fund
 
 # Copy platform source code
 COPY apps/platform/src ./apps/platform/src/

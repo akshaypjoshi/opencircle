@@ -4,17 +4,20 @@ This directory contains GitHub Actions workflows for the OpenCircle project.
 
 ## Workflows
 
-### docker-build.yml
+### docker.yml
 **Trigger**: Push to `main`/`develop` branches, tags, and pull requests
 
-**Purpose**: Automatically build and push Docker images for all applications
+**Purpose**: Automatically build and push Docker images for applications that have changed
 
 **Features**:
-- Multi-platform builds (linux/amd64, linux/arm64)
+- Change detection to only build modified applications
+- Multi-platform builds (linux/amd64, linux/arm64) for branches/tags
+- Single platform (linux/amd64) for pull requests (faster)
 - Automated tagging based on branch/tag/PR
 - GitHub Container Registry integration
 - Build caching for faster CI/CD
 - Matrix strategy for parallel builds
+- Build summary showing what was built/skipped
 
 **Matrix Applications**:
 - `api`: FastAPI backend service
@@ -27,6 +30,11 @@ This directory contains GitHub Actions workflows for the OpenCircle project.
 - Pull requests: `pr-{number}`
 
 **Registry**: `ghcr.io/opencircle/{app}`
+
+**Change Detection**:
+- Only builds apps that have changed since last commit
+- Skips unchanged applications completely
+- Monitors dependencies in packages/ directory
 
 ### docker-test.yml
 **Trigger**: Manual workflow dispatch
@@ -46,7 +54,7 @@ This directory contains GitHub Actions workflows for the OpenCircle project.
 ## Usage
 
 ### Automated Builds
-Simply push to `main` or `develop` branch, or create a tag. Images will be built and pushed automatically.
+Simply push to `main` or `develop` branch, or create a tag. Only applications with changes will be built and pushed.
 
 ### Manual Testing
 1. Go to Actions tab in GitHub
@@ -56,7 +64,7 @@ Simply push to `main` or `develop` branch, or create a tag. Images will be built
 5. Click "Run workflow"
 
 ### Pull Requests
-Pull requests trigger builds but do not push images to the registry.
+Pull requests trigger builds for changed applications but do not push images to the registry. Builds are single-platform (amd64) for faster reviews.
 
 ## Security
 
@@ -86,6 +94,11 @@ Pull requests trigger builds but do not push images to the registry.
 - Ensure container registry access
 
 ### Cache Issues
-- Clear cache if needed
+- Clear cache if needed by adding `[no-cache]` to commit message
 - Use manual workflow for testing
 - Check build context changes
+
+### Change Detection Issues
+- If an app isn't building when expected, check the path filters in the workflow
+- Changes to shared dependencies (packages/) will trigger all app builds
+- Force rebuild all apps with `[no-cache]` in commit message
