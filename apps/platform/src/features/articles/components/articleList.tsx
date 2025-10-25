@@ -24,10 +24,11 @@ export const ArticleList = () => {
 					>
 						<div
 							onClick={() => navigate({ to: `/articles/${article.id}` })}
-							className="cursor-pointer max-w-lg prose prose-invert prose-headings:text-base prose-headings:text-foreground/70 prose-headings:font-medium prose-p:text-sm prose-p:text-foreground/40"
+							className="cursor-pointer max-w-lg prose prose-invert prose-headings:text-base prose-headings:text-foreground prose-headings:font-medium prose-p:text-sm prose-p:text-foreground/40"
 						>
+							<h3 className="text-xl">{article.title}</h3>
 							<MDEditor.Markdown
-								source={article.content.slice(0, 1000)}
+								source={`${article.content.slice(0, 200)}...`}
 								className="!bg-transparent"
 							/>
 						</div>
