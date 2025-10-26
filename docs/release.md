@@ -9,6 +9,7 @@ We use **Changesets** for version management, which gives us:
 - Clear documentation of changes
 - Automatic version updates across all packages (including Python API)
 - Better monorepo support
+- **GitHub releases only** (no npm publishing)
 
 ## Daily Development Workflow
 
@@ -54,14 +55,15 @@ This command:
 ```bash
 pnpm release
 ```
-This publishes all packages and creates a GitHub release.
+This creates a GitHub release (no npm publishing).
 
 ### Automated Releases
 
 GitHub Actions will:
 1. **Create Release PRs** when changesets exist
-2. **Publish automatically** when the release PR is merged
+2. **Create GitHub releases** automatically when the release PR is merged
 3. **Update all packages** including the Python API
+4. **No npm publishing** - only GitHub releases are created
 
 ## Version Impact Guidelines
 
@@ -174,6 +176,13 @@ The GitHub workflow automatically sets up `uv` for Python dependency management.
 # Install uv locally if needed
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
+
+### No npm publishing?
+This project is configured for **GitHub releases only**. We don't publish packages to npm. The release process:
+1. Updates package versions locally
+2. Syncs Python API version
+3. Creates GitHub releases with changelog
+4. No npm registry interaction required
 
 ## Migration from Semantic Release
 

@@ -11,7 +11,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          # This makes Actions fetch all Git history so that Changesets can generate changelogs with the correct commits
           fetch-depth: 0
 
       - name: Setup Node.js
@@ -42,17 +41,66 @@ jobs:
           cd apps/api
           uv sync --dev
 
-      - name: Create Release Pull Request or Publish
-        id: changesets
-        uses: changesets/action@v1
+      - name: Check for changesets
+        id: check-changesets
+        run: |
+          if [ -n "$(git ls-files .changeset/*.md)" ]; then
+            echo "has-changesets=true" >> $GITHUB_OUTPUT
+            echo "📝 Found changesets - preparing release"
+          else
+            echo "has-changesets=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No changesets found - skipping release"
+          fi
+
+      - name: Update versions
+        if: steps.check-changesets.outputs.has-changesets == 'true'
+        run: |
+          echo "🔧 Updating package versions..."
+          pnpm version-packages
+          echo "✅ Package versions updated"
+
+      - name: Create Release Pull Request
+        if: steps.check-changesets.outputs.has-changesets == 'true'
+        uses: peter-evans/create-pull-request@v6
         with:
-          # This expects you to have a script called version-packages which updates the versions
-          version: pnpm version-packages
-          # This expects you to have a script called release which publishes the packages
-          commit: "chore: update package versions"
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update package versions"
           title: "chore: update package versions"
-          publish: pnpm release
+          body: |
+            This PR was created by Changesets to update package versions.
+
+            ## What's included:
+            - Updated package versions based on changesets
+            - Synchronized Python API version
+            - Generated changelog
+
+            ## Next steps:
+            1. Review the changes
+            2. Merge this PR to create a release
+          branch: release/versions
+          delete-branch: true
+
+      - name: Create GitHub Release
+        if: steps.check-changesets.outputs.has-changesets == 'true' && github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          # Get current version
+          VERSION=$(node -p "require('./package.json').version")
+
+          # Create release
+          gh release create "v$VERSION" \
+            --title "Release $VERSION" \
+            --notes "Release $VERSION - see CHANGELOG.md for details" \
+            --latest
+
+          echo "🎉 GitHub release v$VERSION created successfully!"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          # Add any other environment variables needed for publishing
+
+      - name: Release Summary
+        if: steps.check-changesets.outputs.has-changesets == 'true'
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "## 🎉 Release Prepared!"
+          echo "**Version:** $VERSION"
+          echo "**Status:** Ready for merge and release"
+          echo "**Next:** Merge the version update PR to create the release"

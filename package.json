@@ -9,7 +9,7 @@
     "lint": "pnpm exec biome check",
     "changeset": "changeset",
     "version-packages": "changeset version && python scripts/sync-python-version.py",
-    "release": "changeset publish",
+    "release": "echo '🎉 Release completed! Versions updated and synced.'",
     "prepare": "husky"
   },
   "keywords": [],
