@@ -15,7 +15,7 @@ jobs:
           node-version: '20'
       - uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: 10.18.3
       - name: Install dependencies
         run: pnpm install
       - name: Release
