@@ -1,6 +1,14 @@
 import { Input } from "@opencircle/ui";
 import { Link } from "@tanstack/react-router";
-import { BookOpen, FileText, Hash, Key, Users, Zap } from "lucide-react";
+import {
+	BookOpen,
+	FileText,
+	Hash,
+	Key,
+	Settings,
+	Users,
+	Zap,
+} from "lucide-react";
 
 interface MenuItemProps {
 	icon: React.ReactNode;
@@ -45,6 +53,11 @@ export const Sidebar = () => {
 					icon={<FileText size={20} />}
 					label="Articles"
 					to="/articles"
+				/>
+				<MenuItem
+					icon={<Settings size={20} />}
+					label="App Settings"
+					to="/app-settings"
 				/>
 			</nav>
 		</aside>

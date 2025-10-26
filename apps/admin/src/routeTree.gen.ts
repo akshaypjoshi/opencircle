@@ -16,6 +16,7 @@ import { Route as DashboardLayoutSettingsRouteImport } from './routes/_dashboard
 import { Route as DashboardLayoutDashboardRouteImport } from './routes/_dashboardLayout/dashboard'
 import { Route as DashboardLayoutChannelsRouteImport } from './routes/_dashboardLayout/channels'
 import { Route as DashboardLayoutBroadcastRouteImport } from './routes/_dashboardLayout/broadcast'
+import { Route as DashboardLayoutAppSettingsRouteImport } from './routes/_dashboardLayout/app-settings'
 import { Route as DashboardLayoutActivityRouteImport } from './routes/_dashboardLayout/activity'
 import { Route as DashboardLayoutInviteCodesIndexRouteImport } from './routes/_dashboardLayout/invite-codes/index'
 import { Route as DashboardLayoutCoursesIndexRouteImport } from './routes/_dashboardLayout/courses/index'
@@ -63,6 +64,12 @@ const DashboardLayoutBroadcastRoute =
   DashboardLayoutBroadcastRouteImport.update({
     id: '/broadcast',
     path: '/broadcast',
+    getParentRoute: () => DashboardLayoutRoute,
+  } as any)
+const DashboardLayoutAppSettingsRoute =
+  DashboardLayoutAppSettingsRouteImport.update({
+    id: '/app-settings',
+    path: '/app-settings',
     getParentRoute: () => DashboardLayoutRoute,
   } as any)
 const DashboardLayoutActivityRoute = DashboardLayoutActivityRouteImport.update({
@@ -140,6 +147,7 @@ const DashboardLayoutCoursesLessonsEditLessonIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/activity': typeof DashboardLayoutActivityRoute
+  '/app-settings': typeof DashboardLayoutAppSettingsRoute
   '/broadcast': typeof DashboardLayoutBroadcastRoute
   '/channels': typeof DashboardLayoutChannelsRoute
   '/dashboard': typeof DashboardLayoutDashboardRoute
@@ -160,6 +168,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/activity': typeof DashboardLayoutActivityRoute
+  '/app-settings': typeof DashboardLayoutAppSettingsRoute
   '/broadcast': typeof DashboardLayoutBroadcastRoute
   '/channels': typeof DashboardLayoutChannelsRoute
   '/dashboard': typeof DashboardLayoutDashboardRoute
@@ -182,6 +191,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_dashboardLayout': typeof DashboardLayoutRouteWithChildren
   '/_dashboardLayout/activity': typeof DashboardLayoutActivityRoute
+  '/_dashboardLayout/app-settings': typeof DashboardLayoutAppSettingsRoute
   '/_dashboardLayout/broadcast': typeof DashboardLayoutBroadcastRoute
   '/_dashboardLayout/channels': typeof DashboardLayoutChannelsRoute
   '/_dashboardLayout/dashboard': typeof DashboardLayoutDashboardRoute
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/activity'
+    | '/app-settings'
     | '/broadcast'
     | '/channels'
     | '/dashboard'
@@ -224,6 +235,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/activity'
+    | '/app-settings'
     | '/broadcast'
     | '/channels'
     | '/dashboard'
@@ -245,6 +257,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_dashboardLayout'
     | '/_dashboardLayout/activity'
+    | '/_dashboardLayout/app-settings'
     | '/_dashboardLayout/broadcast'
     | '/_dashboardLayout/channels'
     | '/_dashboardLayout/dashboard'
@@ -317,6 +330,13 @@ declare module '@tanstack/react-router' {
       path: '/broadcast'
       fullPath: '/broadcast'
       preLoaderRoute: typeof DashboardLayoutBroadcastRouteImport
+      parentRoute: typeof DashboardLayoutRoute
+    }
+    '/_dashboardLayout/app-settings': {
+      id: '/_dashboardLayout/app-settings'
+      path: '/app-settings'
+      fullPath: '/app-settings'
+      preLoaderRoute: typeof DashboardLayoutAppSettingsRouteImport
       parentRoute: typeof DashboardLayoutRoute
     }
     '/_dashboardLayout/activity': {
@@ -408,6 +428,7 @@ declare module '@tanstack/react-router' {
 
 interface DashboardLayoutRouteChildren {
   DashboardLayoutActivityRoute: typeof DashboardLayoutActivityRoute
+  DashboardLayoutAppSettingsRoute: typeof DashboardLayoutAppSettingsRoute
   DashboardLayoutBroadcastRoute: typeof DashboardLayoutBroadcastRoute
   DashboardLayoutChannelsRoute: typeof DashboardLayoutChannelsRoute
   DashboardLayoutDashboardRoute: typeof DashboardLayoutDashboardRoute
@@ -428,6 +449,7 @@ interface DashboardLayoutRouteChildren {
 
 const DashboardLayoutRouteChildren: DashboardLayoutRouteChildren = {
   DashboardLayoutActivityRoute: DashboardLayoutActivityRoute,
+  DashboardLayoutAppSettingsRoute: DashboardLayoutAppSettingsRoute,
   DashboardLayoutBroadcastRoute: DashboardLayoutBroadcastRoute,
   DashboardLayoutChannelsRoute: DashboardLayoutChannelsRoute,
   DashboardLayoutDashboardRoute: DashboardLayoutDashboardRoute,

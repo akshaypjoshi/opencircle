@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from scalar_fastapi import get_scalar_api_reference
 
 from src.api.account.api import router as account_router
+from src.api.appsettings.api import router as appsettings_router
 from src.api.article.api import router as article_router
 from src.api.auth.api import router as auth_router
 from src.api.channel_members.api import router as channel_members_router
@@ -77,6 +78,7 @@ app.include_router(article_router, prefix="/api", tags=["articles"])
 app.include_router(extras_router, prefix="/api", tags=["extras"])
 app.include_router(invite_code_router, prefix="/api", tags=["invite-codes"])
 app.include_router(notifications_router, prefix="/api", tags=["notifications"])
+app.include_router(appsettings_router, prefix="/api/appsettings", tags=["appsettings"])
 
 
 @app.get("/health")
