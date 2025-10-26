@@ -86,14 +86,16 @@ jobs:
           git add .
           git commit -m "chore: bump version to ${{ env.NEW_VERSION }}"
           git tag "v${{ env.NEW_VERSION }}"
-          git push origin main --follow-tags
+          git push origin main
+          git push origin "v${{ env.NEW_VERSION }}"
 
       - name: Create GitHub Release
         run: |
           gh release create "v${{ env.NEW_VERSION }}" \
             --title "Release ${{ env.NEW_VERSION }}" \
             --notes "Release ${{ env.NEW_VERSION }}" \
-            --latest
+            --latest \
+            --target main
         env:
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
 
