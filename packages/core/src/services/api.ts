@@ -1,5 +1,6 @@
 import type { Hooks } from "ky";
 import { AccountRouter } from "./routers/account";
+import { AppSettingsRouter } from "./routers/appsettings";
 import { ArticlesRouter } from "./routers/articles";
 import { AuthRouter } from "./routers/auth";
 import { ChannelsRouter } from "./routers/channels";
@@ -15,6 +16,7 @@ import { UsersRouter } from "./routers/users";
 export class Api {
 	public users: UsersRouter;
 	public auth: AuthRouter;
+	public appSettings: AppSettingsRouter;
 	public channels: ChannelsRouter;
 	public posts: PostsRouter;
 	public media: MediaRouter;
@@ -29,6 +31,7 @@ export class Api {
 	constructor(baseUrl: string, hooks?: Hooks) {
 		this.users = new UsersRouter(baseUrl, hooks);
 		this.auth = new AuthRouter(baseUrl, hooks);
+		this.appSettings = new AppSettingsRouter(baseUrl, hooks);
 		this.channels = new ChannelsRouter(baseUrl, hooks);
 		this.posts = new PostsRouter(baseUrl, hooks);
 		this.media = new MediaRouter(baseUrl, hooks);
@@ -49,6 +52,9 @@ export function createApi(baseUrl: string, hooks?: Hooks): Api {
 
 // Export all types from the shared types file for convenience
 export type {
+	AppSettings,
+	AppSettingsCreate,
+	AppSettingsUpdate,
 	Article,
 	ArticleCreate,
 	ArticleUpdate,

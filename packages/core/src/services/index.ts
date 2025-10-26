@@ -3,6 +3,7 @@
 // tRPC-style API
 export { Api, createApi } from "./api";
 export { ApiClient } from "./apiClient";
+export { AppSettingsRouter } from "./routers/appsettings";
 export { ArticlesRouter } from "./routers/articles";
 export { AuthRouter } from "./routers/auth";
 export { ChannelsRouter } from "./routers/channels";
@@ -13,6 +14,9 @@ export { ReactionsRouter } from "./routers/reactions";
 export { UsersRouter } from "./routers/users";
 // Export all types from the shared types file for convenience
 export type {
+	AppSettings,
+	AppSettingsCreate,
+	AppSettingsUpdate,
 	Channel,
 	ChannelCreate,
 	ChannelType,
