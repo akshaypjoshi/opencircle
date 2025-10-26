@@ -4,20 +4,30 @@ language: typescript
 tasks:
   dev:
     command: "pnpm dev"
+    options:
+      runInCI: false
 
   format:
     command: "pnpm format"
+    options:
+      runInCI: false
 
   lint:
     command: "pnpm lint"
 
   typecheck:
     command: "tsc --noEmit"
+    options:
+      runInCI: false
 
   test:
     command: "echo 'No tests configured for platform app yet'"
     description: "Run tests for platform app"
+    options:
+      runInCI: false
 
   build:
     command: "pnpm build"
     description: "Build platform app"
+    options:
+      runInCI: false

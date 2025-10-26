@@ -5,10 +5,14 @@ tasks:
   build:
     command: "pnpm build"
     description: "Build core package"
+    options:
+      runInCI: false
 
   format:
     command: "pnpm format"
     description: "Format core package code"
+    options:
+      runInCI: false
 
   lint:
     command: "pnpm lint"
@@ -17,7 +21,11 @@ tasks:
   typecheck:
     command: "tsc --noEmit"
     description: "Type check core package code"
+    options:
+      runInCI: false
 
   test:
     command: "echo 'No tests configured for core package yet'"
     description: "Run tests for core package"
+    options:
+      runInCI: false

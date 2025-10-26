@@ -4,31 +4,49 @@ language: python
 tasks:
   format:
     command: "uv run ruff format ."
+    options:
+      runInCI: false
 
   lint:
     command: "uv run ruff check ."
 
   typecheck:
     command: "uv run ty check ."
+    options:
+      runInCI: false
 
   sync:
     command: "uv sync"
+    options:
+      runInCI: false
 
   migrate:
     command: "uv run alembic upgrade head"
+    options:
+      runInCI: false
 
   dev:
     command: "uv run uvicorn src.main:app --reload"
+    options:
+      runInCI: false
 
   worker:
     command: "uv run celery -A src.core.celery_app worker --pool=threads"
+    options:
+      runInCI: false
 
   test:
     command: "uv run pytest tests/"
+    options:
+      runInCI: false
 
   seed:
     command: "uv run python bin/seeder.py"
+    options:
+      runInCI: false
 
   build:
     command: "echo 'API build handled by Docker'"
     description: "Build API service"
+    options:
+      runInCI: false
