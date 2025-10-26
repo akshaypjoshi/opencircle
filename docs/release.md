@@ -1,9 +1,3 @@
-# Release Guide
-
-## Simple Version Management
-
-This project uses manual version management. No automation, no complexity.
-
 ### When to Update Versions
 
 Update versions when you:
