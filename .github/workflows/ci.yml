@@ -8,10 +8,77 @@ on:
   workflow_dispatch:
 
 jobs:
+  # Detect changes using moonrepo
+  detect-changes:
+    runs-on: ubuntu-latest
+    outputs:
+      admin-changed: ${{ steps.changes.outputs.admin }}
+      platform-changed: ${{ steps.changes.outputs.platform }}
+      api-changed: ${{ steps.changes.outputs.api }}
+      ui-changed: ${{ steps.changes.outputs.ui }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.18.3
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install moon
+        uses: moonrepo/setup-moon@v1
+
+      - name: Detect changes
+        id: changes
+        run: |
+          # Use moon to detect affected projects
+          AFFECTED=$(moon run --affected --json 2>/dev/null || echo "[]")
+
+          # Check if admin is affected
+          if echo "$AFFECTED" | jq -e '.[] | select(.id == "admin")' > /dev/null; then
+            echo "admin=true" >> $GITHUB_OUTPUT
+          else
+            echo "admin=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if platform is affected
+          if echo "$AFFECTED" | jq -e '.[] | select(.id == "platform")' > /dev/null; then
+            echo "platform=true" >> $GITHUB_OUTPUT
+          else
+            echo "platform=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if api is affected
+          if echo "$AFFECTED" | jq -e '.[] | select(.id == "api")' > /dev/null; then
+            echo "api=true" >> $GITHUB_OUTPUT
+          else
+            echo "api=false" >> $GITHUB_OUTPUT
+          fi
+
+          # Check if ui package is affected (affects both admin and platform)
+          if echo "$AFFECTED" | jq -e '.[] | select(.id == "ui-package")' > /dev/null; then
+            echo "ui=true" >> $GITHUB_OUTPUT
+          else
+            echo "ui=false" >> $GITHUB_OUTPUT
+          fi
+
   deploy-admin:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: |
+      github.ref == 'refs/heads/main' &&
+      (needs.detect-changes.outputs.admin-changed == 'true' || needs.detect-changes.outputs.ui-changed == 'true')
     name: Deploy Admin to Cloudflare Pages
+    needs: detect-changes
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -47,8 +114,11 @@ jobs:
 
   deploy-platform:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: |
+      github.ref == 'refs/heads/main' &&
+      (needs.detect-changes.outputs.platform-changed == 'true' || needs.detect-changes.outputs.ui-changed == 'true')
     name: Deploy Platform to Cloudflare Pages
+    needs: detect-changes
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -84,8 +154,11 @@ jobs:
 
   deploy-api:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: |
+      github.ref == 'refs/heads/main' &&
+      needs.detect-changes.outputs.api-changed == 'true'
     name: Deploy API to Docker Registry
+    needs: detect-changes
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -121,3 +194,21 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  # Summary job for visibility
+  deployment-summary:
+    runs-on: ubuntu-latest
+    if: always() && github.ref == 'refs/heads/main'
+    needs: [detect-changes, deploy-admin, deploy-platform, deploy-api]
+    name: Deployment Summary
+    steps:
+      - name: Print deployment summary
+        run: |
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Application | Changed | Deployed |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------------|---------|----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Admin | ${{ needs.detect-changes.outputs.admin-changed }} | ${{ contains(needs.deploy-admin.result, 'success') && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Platform | ${{ needs.detect-changes.outputs.platform-changed }} | ${{ contains(needs.deploy-platform.result, 'success') && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| API | ${{ needs.detect-changes.outputs.api-changed }} | ${{ contains(needs.deploy-api.result, 'success') && '✅' || '❌' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| UI Package | ${{ needs.detect-changes.outputs.ui-changed }} | N/A (affects apps) |" >> $GITHUB_STEP_SUMMARY
