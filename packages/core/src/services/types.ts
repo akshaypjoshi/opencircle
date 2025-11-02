@@ -209,6 +209,7 @@ export interface Post {
 	content: string;
 	title?: string;
 	type: PostType;
+	is_pinned: boolean;
 	user_id: string;
 	channel_id?: string;
 	parent_id?: string;

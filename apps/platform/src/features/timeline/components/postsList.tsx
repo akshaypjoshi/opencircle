@@ -73,6 +73,8 @@ export const PostsList = () => {
 		);
 	}
 
+	console.log(posts);
+
 	return (
 		<>
 			{posts.map((post) => (
