@@ -49,12 +49,6 @@ function RouteComponent() {
 				<div className="space-y-6 border-border border p-8 rounded-xl shadow-2xl">
 					<section className="space-y-3">
 						<section className="space-y-2">
-							<label
-								htmlFor={usernameId}
-								className="text-sm block ml-1 text-foreground/70"
-							>
-								Username
-							</label>
 							<Input
 								id={usernameId}
 								placeholder="Username"
@@ -63,12 +57,6 @@ function RouteComponent() {
 							/>
 						</section>
 						<section className="space-y-2">
-							<label
-								htmlFor={nameId}
-								className="text-sm block ml-1 text-foreground/70"
-							>
-								Fullname
-							</label>
 							<Input
 								id={nameId}
 								placeholder="Fullname"
@@ -77,12 +65,6 @@ function RouteComponent() {
 							/>
 						</section>
 						<section className="space-y-2">
-							<label
-								htmlFor={emailId}
-								className="text-sm block ml-1 text-foreground/70"
-							>
-								Email
-							</label>
 							<Input
 								id={emailId}
 								placeholder="Email"
@@ -92,12 +74,6 @@ function RouteComponent() {
 							/>
 						</section>
 						<section className="space-y-2">
-							<label
-								htmlFor={passwordId}
-								className="text-sm block ml-1 text-foreground/70"
-							>
-								Password
-							</label>
 							<Input
 								id={passwordId}
 								placeholder="Password"
@@ -107,15 +83,9 @@ function RouteComponent() {
 							/>
 						</section>
 						<section className="space-y-2">
-							<label
-								htmlFor={inviteCodeId}
-								className="text-sm block ml-1 text-foreground/70"
-							>
-								Invite Code (Optional)
-							</label>
 							<Input
 								id={inviteCodeId}
-								placeholder="Enter invite code"
+								placeholder="Enter invite code (Optional)"
 								value={inviteCode}
 								onChange={(v) => setInviteCode(v.target.value)}
 							/>
