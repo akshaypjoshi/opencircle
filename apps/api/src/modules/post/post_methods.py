@@ -179,12 +179,13 @@ def get_all_nested_posts_by_parent_id(
     sql = """
     WITH RECURSIVE reply_tree AS (
         SELECT p.id, p.parent_id, p.created_at, p.is_pinned, p.updated_at, p.content, p.type, p.user_id, p.channel_id, 0 as depth,
-               p.created_at as parent_created_at
+               CAST((CASE WHEN p.is_pinned THEN 1 ELSE 0 END) AS TEXT) || '/' ||
+               CAST(EXTRACT(EPOCH FROM p.created_at) * -1 AS TEXT) as sort_path
         FROM post p
         WHERE p.parent_id = :parent_id
         UNION ALL
         SELECT p.id, p.parent_id, p.created_at, p.is_pinned, p.updated_at, p.content, p.type, p.user_id, p.channel_id, rt.depth + 1,
-               rt.parent_created_at
+               rt.sort_path || '/' || CAST(EXTRACT(EPOCH FROM p.created_at) * -1 AS TEXT)
         FROM post p
         INNER JOIN reply_tree rt ON p.parent_id = rt.id
     )
@@ -194,7 +195,7 @@ def get_all_nested_posts_by_parent_id(
     FROM reply_tree rt
     LEFT JOIN "user" u ON rt.user_id = u.id
     LEFT JOIN media m ON rt.id = m.post_id
-    ORDER BY rt.is_pinned DESC, rt.parent_created_at DESC, rt.depth ASC, rt.created_at DESC;
+    ORDER BY rt.sort_path DESC;
     """
     result = db.exec(text(sql).bindparams(parent_id=parent_id))
 
