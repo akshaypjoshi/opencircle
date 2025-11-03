@@ -12,7 +12,6 @@ interface NotificationItemProps {
 export const NotificationItem = ({ notification }: NotificationItemProps) => {
 	const navigate = useNavigate();
 	const { markAsRead, isMarkingAsRead } = useMarkNotificationAsRead();
-	console.log(notification);
 
 	const getTimeAgo = (dateString: string) => {
 		try {
