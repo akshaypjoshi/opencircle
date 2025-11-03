@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { Bell, Github, List, Paperclip, Video, Zap } from "lucide-react";
 import { useAppSettings } from "../features/appSettings/hooks/useAppSettings";
 import { ChannelList } from "../features/channels/components/ChannelList";
+import { NotificationNumbers } from "../features/notifications/components/notificatioNumbers";
 import { MenuItem } from "./menuItem";
 
 export const LeftSidebar = () => {
@@ -37,11 +38,14 @@ export const LeftSidebar = () => {
 						to="/articles"
 					/>
 					<MenuItem icon={<Video size={16} />} label="Courses" to="/courses" />
-					<MenuItem
-						icon={<Bell size={16} />}
-						label="Notifications"
+					<Link
 						to="/notifications"
-					/>
+						className="flex text-sm items-center cursor-pointer hover:bg-primary rounded-lg p-2 transition duration-150"
+					>
+						<Bell size={16} />
+						<span className="ml-3">Notifications</span>
+						<NotificationNumbers />
+					</Link>
 				</section>
 				<section className="p-2 space-y-3">
 					<div className="text-sm space-y-2">
