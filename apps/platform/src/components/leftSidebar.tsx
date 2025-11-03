@@ -76,7 +76,7 @@ export const LeftSidebar = () => {
 					<span className="text-foreground/50">help</span>
 					<span className="text-foreground/50">contact</span>
 				</section>
-				<div className="space-y-5 bg-linear-210 rounded-lg border border-border tracking-tight p-4 text-sm font-medium from-background-secondary to-transparent">
+				<div className="space-y-5 bg-linear-210 rounded-lg border border-border tracking-tight p-4 text-sm font-medium from-background-secondary to-40% to-transparent">
 					<div>
 						Opensource Community Platform for Creators built by Devscalelabs.
 					</div>
@@ -84,9 +84,9 @@ export const LeftSidebar = () => {
 						href="https://github.com/devscalelabs/opencircle"
 						target="_blank"
 						rel="noopener noreferrer"
-						className="flex gap-1 items-center bg-white w-fit text-black font-medium px-2 py-1 rounded-lg"
+						className="text-xs flex gap-1 items-center bg-white w-fit text-black font-medium px-2 py-1 rounded-lg"
 					>
-						<Github size={14} />
+						<Github size={12} />
 						Opencircle
 					</a>
 				</div>

@@ -120,7 +120,13 @@ export const PostCard = ({ post }: PostCardProps) => {
 				<section className="flex gap-4 items-center">
 					<PostCardReactions post={post} />
 					<div className="flex items-center gap-2 text-sm">
-						<MessageCircle size={18} />
+						<MessageCircle
+							size={18}
+							onClick={() =>
+								navigate({ to: "/posts/$id", params: { id: post.id } })
+							}
+							className="cursor-pointer"
+						/>
 						<div>{post.comment_count}</div>
 					</div>
 					{post.comment_summary?.names && (

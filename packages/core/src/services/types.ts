@@ -491,7 +491,10 @@ export interface Notification {
 	recipient_id: string;
 	sender_id: string;
 	type: NotificationType;
-	data?: Record<string, unknown>;
+	data?: {
+		content: string;
+		post_id?: string;
+	};
 	is_read: boolean;
 	recipient: User;
 	sender: User;
