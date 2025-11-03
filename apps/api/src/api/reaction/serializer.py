@@ -25,3 +25,22 @@ class ReactionResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ReactionUserInfo(BaseModel):
+    id: str
+    user_id: str
+    emoji: str
+    user: UserResponse
+
+    class Config:
+        from_attributes = True
+
+
+class ReactionsByEmojiResponse(BaseModel):
+    emoji: str
+    count: int
+    users: list[ReactionUserInfo]
+
+    class Config:
+        from_attributes = True
