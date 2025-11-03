@@ -15,4 +15,10 @@ export interface ReactionCreate {
 	emoji: string;
 }
 
+export interface ReactionsByEmoji {
+	emoji: string;
+	count: number;
+	users: Reaction[];
+}
+
 export type ReactionResponse = Reaction | { message: string };

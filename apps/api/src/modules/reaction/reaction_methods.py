@@ -1,5 +1,7 @@
+from collections import defaultdict
 from typing import Optional
 
+from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
 from src.database.models import Reaction
@@ -50,3 +52,40 @@ def delete_reaction(db: Session, user_id: str, post_id: str, emoji: str) -> bool
         db.commit()
         return True
     return False
+
+
+def get_reactions_by_post(db: Session, post_id: str) -> list[dict]:
+    """Get all reactions for a post grouped by emoji with user details."""
+    reactions = (
+        db.exec(
+            select(Reaction)
+            .where(Reaction.post_id == post_id)
+            .options(joinedload(Reaction.user))
+        )
+        .unique()
+        .all()
+    )
+
+    reactions_by_emoji = defaultdict(list)
+    for reaction in reactions:
+        reactions_by_emoji[reaction.emoji].append(reaction)
+
+    result = []
+    for emoji, emoji_reactions in reactions_by_emoji.items():
+        result.append(
+            {
+                "emoji": emoji,
+                "count": len(emoji_reactions),
+                "users": [
+                    {
+                        "id": r.id,
+                        "user_id": r.user_id,
+                        "emoji": r.emoji,
+                        "user": r.user,
+                    }
+                    for r in emoji_reactions
+                ],
+            }
+        )
+
+    return result

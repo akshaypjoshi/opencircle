@@ -4,9 +4,14 @@ from sqlmodel import Session
 from src.api.account.api import get_current_user
 from src.database.engine import get_session
 from src.database.models import User
-from src.modules.reaction.reaction_methods import create_reaction
+from src.modules.reaction.reaction_methods import create_reaction, get_reactions_by_post
 
-from .serializer import ReactionCreate, ReactionRemovedResponse, ReactionResponse
+from .serializer import (
+    ReactionCreate,
+    ReactionRemovedResponse,
+    ReactionResponse,
+    ReactionsByEmojiResponse,
+)
 
 router = APIRouter()
 
@@ -33,6 +38,15 @@ def create_reaction_endpoint(
         "created_at": created_reaction.created_at,
         "updated_at": created_reaction.updated_at,
     }
+
+
+@router.get("/reactions/{post_id}", response_model=list[ReactionsByEmojiResponse])
+def get_reactions_endpoint(
+    post_id: str,
+    db: Session = Depends(get_session),
+):
+    """Get all reactions for a post grouped by emoji with user details."""
+    return get_reactions_by_post(db, post_id)
 
 
 @router.delete("/reactions/", response_model=ReactionRemovedResponse)
