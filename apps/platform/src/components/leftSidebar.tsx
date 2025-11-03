@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Bell, List, Paperclip, Video, Zap } from "lucide-react";
+import { Bell, Github, List, Paperclip, Video, Zap } from "lucide-react";
 import { useAppSettings } from "../features/appSettings/hooks/useAppSettings";
 import { ChannelList } from "../features/channels/components/ChannelList";
 import { MenuItem } from "./menuItem";
@@ -52,8 +52,39 @@ export const LeftSidebar = () => {
 				</section>
 			</div>
 			<div>
-				<div className="bg-linear-210 rounded-lg border border-border tracking-tight p-4 text-xs font-medium from-primary to-transparent">
-					Opensource Community Platform for Creators built by Devscalelabs
+				<section className="flex flex-wrap px-4 py-2 space-y-2 space-x-4 text-xs font-semibold">
+					<a
+						href="https://devscale.id"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="hover:text-primary transition duration-150"
+					>
+						devscale.id
+					</a>
+					<a
+						href="https://devscale.id/programs"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="hover:text-primary transition duration-150"
+					>
+						programs
+					</a>
+					<span className="text-foreground/50">help</span>
+					<span className="text-foreground/50">contact</span>
+				</section>
+				<div className="space-y-5 bg-linear-210 rounded-lg border border-border tracking-tight p-4 text-sm font-medium from-background-secondary to-transparent">
+					<div>
+						Opensource Community Platform for Creators built by Devscalelabs.
+					</div>
+					<a
+						href="https://github.com/devscalelabs/opencircle"
+						target="_blank"
+						rel="noopener noreferrer"
+						className="flex gap-1 items-center bg-white w-fit text-black font-medium px-2 py-1 rounded-lg"
+					>
+						<Github size={14} />
+						Opencircle
+					</a>
 				</div>
 			</div>
 		</div>
