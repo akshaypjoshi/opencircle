@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { Edit, Eye, Plus, Trash2 } from "lucide-react";
-import type { Article } from "../types/article";
+import type { Article } from "../utils/types";
 
 interface ArticleListProps {
 	articles: Article[];

@@ -1,7 +1,8 @@
 import { Button } from "@opencircle/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { Plus } from "lucide-react";
-import { CourseTable, useCourses } from "../../../features/course";
+import { CourseTable } from "../../../features/course/components/courseTable";
+import { useCourses } from "../../../features/course/hooks/useCourses";
 
 export const Route = createFileRoute("/_dashboardLayout/courses/")({
 	component: RouteComponent,
