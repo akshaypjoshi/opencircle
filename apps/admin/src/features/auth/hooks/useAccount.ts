@@ -13,7 +13,6 @@ export const useAccount = () => {
 				navigate({ to: "/" });
 				throw new Error("Access denied: Admin role required");
 			}
-			console.log("Account data:", response);
 			return response;
 		},
 		retry: (failureCount, error) => {
