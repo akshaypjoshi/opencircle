@@ -1,6 +1,6 @@
 from typing import List, Optional
 
-from sqlmodel import Session, select
+from sqlmodel import Session, asc, select
 
 from src.database.models import Channel, ChannelMember
 
@@ -53,8 +53,8 @@ def get_all_channels(
     db: Session, skip: int = 0, limit: int = 100, user_id: Optional[str] = None
 ) -> List[Channel]:
     """Get all channels with pagination - all public and private channels."""
-    # Get all channels (public and private) with pagination
-    statement = select(Channel).offset(skip).limit(limit)
+    # Get all channels (public and private) with pagination, ordered by type (public first, then private)
+    statement = select(Channel).order_by(asc(Channel.type)).offset(skip).limit(limit)
     return list(db.exec(statement).all())
 
 

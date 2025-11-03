@@ -12,7 +12,7 @@ export const NotificationItem = ({ notification }: NotificationItemProps) => {
 
 	const getTimeAgo = (dateString: string) => {
 		try {
-			return moment(dateString).fromNow();
+			return moment.utc(dateString).fromNow();
 		} catch {
 			return "Unknown time";
 		}
