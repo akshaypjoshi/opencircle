@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 
 from pydantic import BaseModel
 
@@ -7,11 +7,6 @@ from src.api.channels.serializer import ChannelResponse
 from src.api.media.serializer import MediaResponse
 from src.api.user.serializer import UserResponse
 from src.database.models import PostType
-
-if TYPE_CHECKING:
-    from src.api.poll.serializer import PollResponse
-
-# Actual import is done after class definitions to avoid circular imports
 
 
 class PostCreate(BaseModel):
@@ -41,7 +36,6 @@ class PostResponse(BaseModel):
     user: UserResponse
     channel: Optional[ChannelResponse] = None
     medias: List[MediaResponse] = []
-    poll: Optional["PollResponse"] = None
     created_at: datetime
     updated_at: datetime
     comment_count: int = 0
@@ -51,9 +45,3 @@ class PostResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-# Import after class definitions to avoid circular imports
-from src.api.poll.serializer import PollResponse  # noqa: E402, F401
-
-PostResponse.model_rebuild()
