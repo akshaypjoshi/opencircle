@@ -66,19 +66,27 @@ def get_poll(
     poll_id: str,
     current_user: Optional[User] = Depends(get_current_user),
     db: Session = Depends(get_session),
-) -> Poll:
+) -> PollResponse:
     """Get poll details with options and user's vote if authenticated."""
     poll = get_poll_by_id(db, poll_id)
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found")
 
-    # Add user's current vote if authenticated
-    if current_user:
-        user_vote = get_user_vote(db, poll_id, current_user.id)
-        if user_vote:
-            poll.user_vote = user_vote
-
-    return PollResponse.model_validate(poll)
+    # Build poll response with user vote if authenticated
+    poll_data = {
+        "id": poll.id,
+        "post_id": poll.post_id,
+        "duration_hours": poll.duration_hours,
+        "is_active": poll.is_active,
+        "total_votes": poll.total_votes,
+        "created_at": poll.created_at,
+        "updated_at": poll.updated_at,
+        "options": poll.options,
+        "user_vote": get_user_vote(db, poll_id, current_user.id)
+        if current_user
+        else None,
+    }
+    return PollResponse.model_validate(poll_data)
 
 
 @router.get("/posts/{post_id}/poll", response_model=PollResponse)
@@ -86,19 +94,27 @@ def get_poll_by_post(
     post_id: str,
     current_user: Optional[User] = Depends(get_current_user),
     db: Session = Depends(get_session),
-) -> Poll:
+) -> PollResponse:
     """Get poll for a specific post."""
     poll = get_poll_by_post_id(db, post_id)
     if not poll:
         raise HTTPException(status_code=404, detail="Poll not found for this post")
 
-    # Add user's current vote if authenticated
-    if current_user:
-        user_vote = get_user_vote(db, poll.id, current_user.id)
-        if user_vote:
-            poll.user_vote = user_vote
-
-    return PollResponse.model_validate(poll)
+    # Build poll response with user vote if authenticated
+    poll_data = {
+        "id": poll.id,
+        "post_id": poll.post_id,
+        "duration_hours": poll.duration_hours,
+        "is_active": poll.is_active,
+        "total_votes": poll.total_votes,
+        "created_at": poll.created_at,
+        "updated_at": poll.updated_at,
+        "options": poll.options,
+        "user_vote": get_user_vote(db, poll.id, current_user.id)
+        if current_user
+        else None,
+    }
+    return PollResponse.model_validate(poll_data)
 
 
 @router.post("/polls/{poll_id}/vote", response_model=PollVoteResponse)

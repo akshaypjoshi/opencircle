@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from typing import List, Optional
 
-from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
 from src.database.models import Poll, PollOption, PollVote
@@ -27,21 +26,13 @@ def create_poll(db: Session, poll_data: dict, options_data: List[dict]) -> Poll:
 
 def get_poll_by_post_id(db: Session, post_id: str) -> Optional[Poll]:
     """Get poll by post ID with options."""
-    statement = (
-        select(Poll)
-        .where(Poll.post_id == post_id)
-        .options(joinedload(Poll.options).joinedload(PollOption.votes))
-    )
+    statement = select(Poll).where(Poll.post_id == post_id)
     return db.exec(statement).one_or_none()
 
 
 def get_poll_by_id(db: Session, poll_id: str) -> Optional[Poll]:
     """Get poll by ID with options."""
-    statement = (
-        select(Poll)
-        .where(Poll.id == poll_id)
-        .options(joinedload(Poll.options).joinedload(PollOption.votes))
-    )
+    statement = select(Poll).where(Poll.id == poll_id)
     return db.exec(statement).one_or_none()
 
 
