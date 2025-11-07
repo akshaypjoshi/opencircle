@@ -3,7 +3,6 @@ import { LockIcon } from "lucide-react";
 import { useState } from "react";
 import { useAccount } from "../../../features/auth/hooks/useAccount";
 import { api } from "../../../utils/api";
-import { PollCard } from "../../polls/components/pollCard";
 import { PostCard } from "../../posts/components/postCard";
 import { usePosts } from "../../posts/hooks/usePosts";
 
@@ -78,15 +77,9 @@ export const PostsList = () => {
 
 	return (
 		<>
-			{posts.map((post) => {
-				if (post.type === "post") {
-					return <PostCard key={post.id} post={post} />;
-				}
-				if (post.type === "poll") {
-					return <PollCard key={post.id} post={post} />;
-				}
-				return null;
-			})}
+			{posts.map((post) => (
+				<PostCard key={post.id} post={post} />
+			))}
 		</>
 	);
 };
