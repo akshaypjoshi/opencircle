@@ -1,6 +1,7 @@
 import { Button } from "@opencircle/ui";
 import { Link } from "@tanstack/react-router";
 import { useAccount } from "../features/auth/hooks/useAccount";
+import { CoursePromotionCard } from "../features/courses/components/coursePromotionCard";
 import { UserCard } from "../features/user/components/userCard";
 
 export const RightSidebar = () => {
@@ -23,7 +24,9 @@ export const RightSidebar = () => {
 					</div>
 				</section>
 			)}
-			<main className="space-y-8 p-4"></main>
+			<main className="space-y-8 p-4">
+				<CoursePromotionCard />
+			</main>
 		</div>
 	);
 };

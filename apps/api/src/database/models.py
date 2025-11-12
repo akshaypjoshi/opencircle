@@ -45,6 +45,7 @@ class PostType(str, Enum):
     POST = "post"
     COMMENT = "comment"
     ARTICLE = "article"
+    POLL = "poll"
 
 
 class InviteCode(BaseModel, table=True):
