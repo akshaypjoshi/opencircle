@@ -102,9 +102,7 @@ export const InviteCodeList = ({
 			cell: ({ row }) => {
 				const channelId = row.getValue("auto_join_channel_id") as string;
 				return channelId ? (
-					<div className="max-w-xs truncate font-mono text-sm text-xs">
-						{channelId}
-					</div>
+					<div className="max-w-xs truncate font-mono text-sm">{channelId}</div>
 				) : (
 					<div className="text-gray-500 text-sm">None</div>
 				);

@@ -1,6 +1,6 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { METADATA } from "../../constants/metadata";
-import { ArticleView } from "../../features/articles/components/ArticleView";
+import { ArticleView } from "../../features/articles/components/articleView";
 import { useArticle } from "../../features/articles/hooks/useArticle";
 import { useArticleSubmission } from "../../features/articles/hooks/useArticleSubmission";
 

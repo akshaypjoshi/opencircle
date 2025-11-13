@@ -1,7 +1,7 @@
 import { Button } from "@opencircle/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { METADATA } from "../../constants/metadata";
-import { ArticleList } from "../../features/articles/components/ArticleList";
+import { ArticleList } from "../../features/articles/components/articleList";
 import { useArticleSubmission } from "../../features/articles/hooks/useArticleSubmission";
 import { useArticles } from "../../features/articles/hooks/useArticles";
 

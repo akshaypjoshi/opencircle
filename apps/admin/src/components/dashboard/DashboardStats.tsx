@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: The index errors is fine since for skeleton! */
 import { Activity, BookOpen, CheckCircle, Users } from "lucide-react";
 import type { DashboardStats } from "../../services/dashboard";
 
