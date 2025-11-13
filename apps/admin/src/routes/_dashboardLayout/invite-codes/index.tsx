@@ -1,7 +1,7 @@
 import { Button } from "@opencircle/ui";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { METADATA } from "../../../constants/metadata";
-import { InviteCodeList } from "../../../features/inviteCode/components/InviteCodeList";
+import { InviteCodeList } from "../../../features/inviteCode/components/inviteCodeList";
 import { useInviteCodeSubmission } from "../../../features/inviteCode/hooks/useInviteCodeSubmission";
 import { useInviteCodes } from "../../../features/inviteCode/hooks/useInviteCodes";
 

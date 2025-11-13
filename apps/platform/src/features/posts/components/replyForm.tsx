@@ -4,7 +4,7 @@ import { Image, Smile, X } from "lucide-react";
 import { DropdownMenu } from "radix-ui";
 import { useEffect, useRef, useState } from "react";
 import { useAccount } from "../../auth/hooks/useAccount";
-import { MentionList } from "../../mention/components/MentionList";
+import { MentionList } from "../../mention/components/mentionList";
 import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea";
 import { usePost } from "../hooks/usePost";
 import { usePostMention } from "../hooks/usePostMention";

@@ -8,7 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { useAccount } from "../../auth/hooks/useAccount";
 import { useChannels } from "../../channels/hooks/useChannels";
-import { MentionList } from "../../mention/components/MentionList";
+import { MentionList } from "../../mention/components/mentionList";
 import { useAutoResizeTextarea } from "../hooks/useAutoResizeTextarea";
 import { usePostMention } from "../hooks/usePostMention";
 import { usePostSubmission } from "../hooks/usePostSubmission";

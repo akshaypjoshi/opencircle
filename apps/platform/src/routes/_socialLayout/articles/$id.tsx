@@ -8,7 +8,7 @@ import { METADATA } from "../../../constants/metadata";
 import { useArticle } from "../../../features/articles/hooks/useArticle";
 import { useAccount } from "../../../features/auth/hooks/useAccount";
 import { PostCardReactions } from "../../../features/posts/components/postCardReactions";
-import { RepliesList } from "../../../features/posts/components/RepliesList";
+import { RepliesList } from "../../../features/posts/components/repliesList";
 import { ReplyForm } from "../../../features/posts/components/replyForm";
 import { usePosts } from "../../../features/posts/hooks/usePosts";
 

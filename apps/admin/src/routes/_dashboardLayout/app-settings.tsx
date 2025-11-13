@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { METADATA } from "../../constants/metadata";
-import { AppSettings } from "../../features/app-settings/components/AppSettings";
+import { AppSettings } from "../../features/appSettings/components/appSettings";
 
 export const Route = createFileRoute("/_dashboardLayout/app-settings")({
 	head: () => ({

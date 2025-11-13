@@ -1,8 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { Bell, List, Paperclip, Video, Zap } from "lucide-react";
 import { useAppSettings } from "../features/appSettings/hooks/useAppSettings";
-import { ChannelList } from "../features/channels/components/ChannelList";
-import { NotificationNumbers } from "../features/notifications/components/notificatioNumbers";
+import { ChannelList } from "../features/channels/components/channelList";
+import { NotificationNumbers } from "../features/notifications/components/notificationNumbers";
 import { MenuItem } from "./menuItem";
 
 export const LeftSidebar = () => {
