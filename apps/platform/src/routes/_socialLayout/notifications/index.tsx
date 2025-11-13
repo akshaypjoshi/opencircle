@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Header } from "../../../components/header";
 import { METADATA } from "../../../constants/metadata";
-import { NotificationList } from "../../../features/notifications/components/NotificationList";
+import { NotificationList } from "../../../features/notifications/components/notificationList";
 
 export const Route = createFileRoute("/_socialLayout/notifications/")({
 	head: () => ({

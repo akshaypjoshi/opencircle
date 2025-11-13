@@ -7,7 +7,7 @@ import { DropdownMenu } from "radix-ui";
 import { useId } from "react";
 import { getInitials } from "../../../utils/common";
 import { useAccount } from "../../auth/hooks/useAccount";
-import { UrlPreview } from "../../extras/components/UrlPreview";
+import { UrlPreview } from "../../extras/components/urlPreview";
 import { MediaGallery } from "../../media/components/media";
 import { usePostDelete } from "../hooks/usePostDelete";
 import { renderContent } from "../utils/contentRendering";
