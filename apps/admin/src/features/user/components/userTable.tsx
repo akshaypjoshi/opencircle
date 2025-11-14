@@ -1,14 +1,23 @@
 import type { User } from "@opencircle/core";
-import { Button } from "@opencircle/ui";
+import { Button, Input } from "@opencircle/ui";
 import {
 	type ColumnDef,
 	flexRender,
 	getCoreRowModel,
+	getFilteredRowModel,
 	getSortedRowModel,
+	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import { Eye, Trash2 } from "lucide-react";
-import { useState } from "react";
+import {
+	ArrowDown,
+	ArrowUp,
+	ArrowUpDown,
+	Eye,
+	Search,
+	Trash2,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 
 interface UserTableProps {
 	users: User[];
@@ -17,6 +26,8 @@ interface UserTableProps {
 
 export const UserTable = ({ users, isLoading }: UserTableProps) => {
 	const [rowSelection, setRowSelection] = useState({});
+	const [sorting, setSorting] = useState<SortingState>([]);
+	const [searchQuery, setSearchQuery] = useState("");
 
 	const columns: ColumnDef<User>[] = [
 		{
@@ -44,7 +55,24 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 		},
 		{
 			accessorKey: "username",
-			header: "User",
+			header: ({ column }) => {
+				return (
+					<button
+						type="button"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="flex items-center gap-2 transition-colors hover:text-foreground"
+					>
+						User
+						{column.getIsSorted() === "asc" ? (
+							<ArrowUp size={14} />
+						) : column.getIsSorted() === "desc" ? (
+							<ArrowDown size={14} />
+						) : (
+							<ArrowUpDown size={14} className="opacity-50" />
+						)}
+					</button>
+				);
+			},
 			cell: ({ row }) => {
 				const username = row.getValue("username") as string;
 				const name = row.original.name;
@@ -62,7 +90,24 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 		},
 		{
 			accessorKey: "email",
-			header: "Email",
+			header: ({ column }) => {
+				return (
+					<button
+						type="button"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="flex items-center gap-2 transition-colors hover:text-foreground"
+					>
+						Email
+						{column.getIsSorted() === "asc" ? (
+							<ArrowUp size={14} />
+						) : column.getIsSorted() === "desc" ? (
+							<ArrowDown size={14} />
+						) : (
+							<ArrowUpDown size={14} className="opacity-50" />
+						)}
+					</button>
+				);
+			},
 			cell: ({ row }) => (
 				<div className="text-sm">{row.getValue("email") as string}</div>
 			),
@@ -82,7 +127,24 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 		},
 		{
 			accessorKey: "role",
-			header: "Role",
+			header: ({ column }) => {
+				return (
+					<button
+						type="button"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="flex items-center gap-2 transition-colors hover:text-foreground"
+					>
+						Role
+						{column.getIsSorted() === "asc" ? (
+							<ArrowUp size={14} />
+						) : column.getIsSorted() === "desc" ? (
+							<ArrowDown size={14} />
+						) : (
+							<ArrowUpDown size={14} className="opacity-50" />
+						)}
+					</button>
+				);
+			},
 			cell: ({ row }) => (
 				<div className="text-sm capitalize">
 					{row.getValue("role") as string}
@@ -91,7 +153,24 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 		},
 		{
 			accessorKey: "created_at",
-			header: "Created",
+			header: ({ column }) => {
+				return (
+					<button
+						type="button"
+						onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+						className="flex items-center gap-2 transition-colors hover:text-foreground"
+					>
+						Created
+						{column.getIsSorted() === "asc" ? (
+							<ArrowUp size={14} />
+						) : column.getIsSorted() === "desc" ? (
+							<ArrowDown size={14} />
+						) : (
+							<ArrowUpDown size={14} className="opacity-50" />
+						)}
+					</button>
+				);
+			},
 			cell: ({ row }) => {
 				const date = new Date(row.getValue("created_at") as string);
 				return <div className="text-sm">{date.toLocaleDateString()}</div>;
@@ -130,14 +209,32 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 		},
 	];
 
+	// Filter users based on search query
+	const filteredUsers = useMemo(() => {
+		if (!searchQuery.trim()) return users;
+
+		const query = searchQuery.toLowerCase();
+		return users.filter((user) => {
+			return (
+				user.username?.toLowerCase().includes(query) ||
+				user.email?.toLowerCase().includes(query) ||
+				user.name?.toLowerCase().includes(query) ||
+				user.role?.toLowerCase().includes(query)
+			);
+		});
+	}, [users, searchQuery]);
+
 	const table = useReactTable({
-		data: users,
+		data: filteredUsers,
 		columns,
 		getCoreRowModel: getCoreRowModel(),
 		getSortedRowModel: getSortedRowModel(),
+		getFilteredRowModel: getFilteredRowModel(),
 		onRowSelectionChange: setRowSelection,
+		onSortingChange: setSorting,
 		state: {
 			rowSelection,
+			sorting,
 		},
 	});
 
@@ -168,57 +265,80 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 	}
 
 	return (
-		<div className="rounded-lg border border-border bg-background shadow-sm">
-			<div className="overflow-x-auto">
-				<table className="min-w-full divide-y divide-border">
-					<thead className="bg-background-secondary/50">
-						{table.getHeaderGroups().map((headerGroup) => (
-							<tr key={headerGroup.id}>
-								{headerGroup.headers.map((header) => (
-									<th
-										key={header.id}
-										className="px-6 py-3 text-left font-semibold text-foreground text-xs uppercase tracking-wider"
-									>
-										{header.isPlaceholder
-											? null
-											: flexRender(
-													header.column.columnDef.header,
-													header.getContext(),
-												)}
-									</th>
-								))}
-							</tr>
-						))}
-					</thead>
-					<tbody className="divide-y divide-border bg-background">
-						{table.getRowModel().rows?.length ? (
-							table.getRowModel().rows.map((row) => (
-								<tr
-									key={row.id}
-									className="transition-colors hover:bg-background-secondary/50"
-								>
-									{row.getVisibleCells().map((cell) => (
-										<td key={cell.id} className="px-6 py-4">
-											{flexRender(
-												cell.column.columnDef.cell,
-												cell.getContext(),
-											)}
-										</td>
+		<div className="space-y-4">
+			{/* Search Input */}
+			<div className="relative">
+				<div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+					<Search size={16} className="text-foreground/40" />
+				</div>
+				<Input
+					type="text"
+					placeholder="Search by username, email, name, or role..."
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+					className="pl-10"
+				/>
+			</div>
+
+			{/* Results count */}
+			{searchQuery && (
+				<div className="text-foreground/60 text-sm">
+					Showing {filteredUsers.length} of {users.length} users
+				</div>
+			)}
+
+			<div className="rounded-lg border border-border bg-background shadow-sm">
+				<div className="overflow-x-auto">
+					<table className="min-w-full divide-y divide-border">
+						<thead className="bg-background-secondary/50">
+							{table.getHeaderGroups().map((headerGroup) => (
+								<tr key={headerGroup.id}>
+									{headerGroup.headers.map((header) => (
+										<th
+											key={header.id}
+											className="px-6 py-3 text-left font-semibold text-foreground text-xs uppercase tracking-wider"
+										>
+											{header.isPlaceholder
+												? null
+												: flexRender(
+														header.column.columnDef.header,
+														header.getContext(),
+													)}
+										</th>
 									))}
 								</tr>
-							))
-						) : (
-							<tr>
-								<td
-									colSpan={columns.length}
-									className="px-6 py-12 text-center text-foreground/60 text-sm"
-								>
-									No users found.
-								</td>
-							</tr>
-						)}
-					</tbody>
-				</table>
+							))}
+						</thead>
+						<tbody className="divide-y divide-border bg-background">
+							{table.getRowModel().rows?.length ? (
+								table.getRowModel().rows.map((row) => (
+									<tr
+										key={row.id}
+										className="transition-colors hover:bg-background-secondary/50"
+									>
+										{row.getVisibleCells().map((cell) => (
+											<td key={cell.id} className="px-6 py-4">
+												{flexRender(
+													cell.column.columnDef.cell,
+													cell.getContext(),
+												)}
+											</td>
+										))}
+									</tr>
+								))
+							) : (
+								<tr>
+									<td
+										colSpan={columns.length}
+										className="px-6 py-12 text-center text-foreground/60 text-sm"
+									>
+										No users found.
+									</td>
+								</tr>
+							)}
+						</tbody>
+					</table>
+				</div>
 			</div>
 		</div>
 	);
