@@ -7,9 +7,9 @@ interface RecentEnrollmentsProps {
 }
 
 const statusColors = {
-	active: "bg-background-secondary text-foreground",
-	completed: "bg-background-secondary text-foreground",
-	dropped: "bg-background-secondary text-foreground",
+	active: "bg-blue-50 text-blue-700 border border-blue-200",
+	completed: "bg-green-50 text-green-700 border border-green-200",
+	dropped: "bg-red-50 text-red-700 border border-red-200",
 };
 
 export const RecentEnrollmentsTable = ({
@@ -18,23 +18,25 @@ export const RecentEnrollmentsTable = ({
 }: RecentEnrollmentsProps) => {
 	if (isLoading) {
 		return (
-			<div className="rounded-lg bg-background shadow">
-				<div className="p-6">
-					<h3 className="mb-4 font-semibold text-foreground text-lg">
+			<div className="rounded-lg border border-border bg-background shadow-sm">
+				<div className="border-border border-b px-6 py-4">
+					<h3 className="font-semibold text-foreground text-lg">
 						Recent Enrollments
 					</h3>
+				</div>
+				<div className="p-6">
 					<div className="space-y-3">
 						{[...Array(5)].map((i) => (
 							<div
 								key={`skeleton-enrollment-row-${i}`}
-								className="animate-pulse"
+								className="animate-pulse border-border border-b pb-4 last:border-0"
 							>
-								<div className="flex items-center justify-between border-b p-4">
+								<div className="flex items-center gap-4">
 									<div className="flex-1 space-y-2">
 										<div className="h-4 w-48 rounded bg-background-secondary"></div>
 										<div className="h-3 w-32 rounded bg-background-secondary"></div>
 									</div>
-									<div className="h-6 w-20 rounded bg-background-secondary"></div>
+									<div className="h-6 w-20 rounded-full bg-background-secondary"></div>
 									<div className="h-4 w-24 rounded bg-background-secondary"></div>
 								</div>
 							</div>
@@ -55,76 +57,79 @@ export const RecentEnrollmentsTable = ({
 	};
 
 	return (
-		<div className="rounded-lg bg-background shadow">
-			<div className="p-6">
-				<h3 className="mb-4 font-semibold text-foreground text-lg">
+		<div className="rounded-lg border border-border bg-background shadow-sm">
+			<div className="border-border border-b px-6 py-4">
+				<h3 className="font-semibold text-foreground text-lg">
 					Recent Enrollments
 				</h3>
-				<div className="overflow-x-auto">
-					<table className="min-w-full">
-						<thead>
-							<tr className="border-b">
-								<th className="px-4 py-3 text-left font-medium text-foreground text-sm">
-									Username
-								</th>
-								<th className="px-4 py-3 text-left font-medium text-foreground text-sm">
-									Course Title
-								</th>
-								<th className="px-4 py-3 text-left font-medium text-foreground text-sm">
-									Status
-								</th>
-								<th className="px-4 py-3 text-left font-medium text-foreground text-sm">
-									Enrollment Date
-								</th>
+			</div>
+			<div className="overflow-x-auto">
+				<table className="min-w-full divide-y divide-border">
+					<thead className="bg-background-secondary/50">
+						<tr>
+							<th className="px-6 py-3 text-left font-semibold text-foreground text-xs uppercase tracking-wider">
+								User
+							</th>
+							<th className="px-6 py-3 text-left font-semibold text-foreground text-xs uppercase tracking-wider">
+								Course
+							</th>
+							<th className="px-6 py-3 text-left font-semibold text-foreground text-xs uppercase tracking-wider">
+								Status
+							</th>
+							<th className="px-6 py-3 text-left font-semibold text-foreground text-xs uppercase tracking-wider">
+								Enrolled
+							</th>
+						</tr>
+					</thead>
+					<tbody className="divide-y divide-border bg-background">
+						{enrollments.length === 0 ? (
+							<tr>
+								<td
+									colSpan={4}
+									className="px-6 py-12 text-center text-foreground/60 text-sm"
+								>
+									No enrollments found
+								</td>
 							</tr>
-						</thead>
-						<tbody>
-							{enrollments.length === 0 ? (
-								<tr>
-									<td colSpan={4} className="py-8 text-center text-foreground">
-										No enrollments found
+						) : (
+							enrollments.map((enrollment) => (
+								<tr
+									key={enrollment.id}
+									className="transition-colors hover:bg-background-secondary/50"
+								>
+									<td className="px-6 py-4">
+										<div className="flex flex-col">
+											<span className="font-medium text-foreground text-sm">
+												{enrollment.user.username}
+											</span>
+											<span className="text-foreground/60 text-xs">
+												{enrollment.user.email}
+											</span>
+										</div>
+									</td>
+									<td className="px-6 py-4">
+										<span className="text-foreground text-sm">
+											{enrollment.course.title}
+										</span>
+									</td>
+									<td className="px-6 py-4">
+										<span
+											className={`inline-flex items-center rounded-full px-2.5 py-0.5 font-medium text-xs ${statusColors[enrollment.status]}`}
+										>
+											{enrollment.status.charAt(0).toUpperCase() +
+												enrollment.status.slice(1)}
+										</span>
+									</td>
+									<td className="px-6 py-4">
+										<span className="text-foreground/80 text-sm">
+											{formatDate(enrollment.enrolled_at)}
+										</span>
 									</td>
 								</tr>
-							) : (
-								enrollments.map((enrollment) => (
-									<tr
-										key={enrollment.id}
-										className="border-b hover:bg-background-secondary"
-									>
-										<td className="px-4 py-3">
-											<div>
-												<div className="font-medium text-foreground text-sm">
-													{enrollment.user.username}
-												</div>
-												<div className="text-foreground text-xs">
-													{enrollment.user.email}
-												</div>
-											</div>
-										</td>
-										<td className="px-4 py-3">
-											<div className="text-foreground text-sm">
-												{enrollment.course.title}
-											</div>
-										</td>
-										<td className="px-4 py-3">
-											<span
-												className={`inline-flex rounded-full px-2 py-1 font-semibold text-xs ${statusColors[enrollment.status]}`}
-											>
-												{enrollment.status.charAt(0).toUpperCase() +
-													enrollment.status.slice(1)}
-											</span>
-										</td>
-										<td className="px-4 py-3">
-											<div className="text-gray-900 text-sm">
-												{formatDate(enrollment.enrolled_at)}
-											</div>
-										</td>
-									</tr>
-								))
-							)}
-						</tbody>
-					</table>
-				</div>
+							))
+						)}
+					</tbody>
+				</table>
 			</div>
 		</div>
 	);
