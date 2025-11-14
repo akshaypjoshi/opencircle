@@ -1,8 +1,24 @@
+import {
+	closestCenter,
+	DndContext,
+	type DragEndEvent,
+	KeyboardSensor,
+	PointerSensor,
+	useSensor,
+	useSensors,
+} from "@dnd-kit/core";
+import {
+	arrayMove,
+	SortableContext,
+	sortableKeyboardCoordinates,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import type { SectionCreate, SectionUpdate } from "@opencircle/core";
 import { Button } from "@opencircle/ui";
 import { Plus } from "lucide-react";
 import { useState } from "react";
 import { SectionEditor } from "../../../features/section/components/sectionEditor";
+import { SectionListItem } from "../../../features/section/components/sectionListItem";
 import { useSections } from "../../../features/section/hooks/useSections";
 
 interface CourseContentManagerProps {
@@ -13,18 +29,31 @@ export const CourseContentManager = ({
 	courseId,
 }: CourseContentManagerProps) => {
 	const [showSectionForm, setShowSectionForm] = useState(false);
-	const [editingSectionId, setEditingSectionId] = useState<string | null>(null);
+	const [optimisticSections, setOptimisticSections] = useState<typeof sections>(
+		[],
+	);
 
 	const {
 		sections,
 		isSectionsLoading,
 		createSection,
-		updateSection,
 		deleteSection,
+		reorderSections,
 		isCreatingSection,
-		isUpdatingSection,
 		isDeletingSection,
+		isReorderingSections,
 	} = useSections(courseId);
+
+	const sensors = useSensors(
+		useSensor(PointerSensor),
+		useSensor(KeyboardSensor, {
+			coordinateGetter: sortableKeyboardCoordinates,
+		}),
+	);
+
+	// Use optimistic sections if available, otherwise use actual sections
+	const displaySections =
+		optimisticSections.length > 0 ? optimisticSections : sections;
 
 	const handleCreateSection = async (
 		sectionData: SectionCreate | SectionUpdate,
@@ -37,16 +66,6 @@ export const CourseContentManager = ({
 			setShowSectionForm(false);
 		} catch (error) {
 			console.error("Failed to create section in CourseContentManager:", error);
-		}
-	};
-
-	const handleUpdateSection = async (sectionData: SectionUpdate) => {
-		if (!editingSectionId) return;
-		try {
-			await updateSection({ id: editingSectionId, data: sectionData });
-			setEditingSectionId(null);
-		} catch (error) {
-			console.error("Failed to update section in CourseContentManager:", error);
 		}
 	};
 
@@ -64,6 +83,41 @@ export const CourseContentManager = ({
 					error,
 				);
 			}
+		}
+	};
+
+	const handleDragEnd = async (event: DragEndEvent) => {
+		const { active, over } = event;
+
+		if (!over || active.id === over.id) {
+			return;
+		}
+
+		const oldIndex = sections.findIndex((s) => s.id === active.id);
+		const newIndex = sections.findIndex((s) => s.id === over.id);
+
+		if (oldIndex === -1 || newIndex === -1) {
+			return;
+		}
+
+		// Optimistically update the UI immediately
+		const reorderedSections = arrayMove(sections, oldIndex, newIndex);
+		setOptimisticSections(reorderedSections);
+
+		// Update order values
+		const updates = reorderedSections.map((section, index) => ({
+			id: section.id,
+			order: index,
+		}));
+
+		try {
+			await reorderSections(updates);
+			// Clear optimistic state on success - real data will come from query
+			setOptimisticSections([]);
+		} catch (error) {
+			console.error("Failed to reorder sections:", error);
+			// Revert optimistic update on error
+			setOptimisticSections([]);
 		}
 	};
 
@@ -95,7 +149,7 @@ export const CourseContentManager = ({
 				<div className="py-12 text-center text-muted-foreground">
 					Loading course content...
 				</div>
-			) : sections.length === 0 && !showSectionForm ? (
+			) : displaySections.length === 0 && !showSectionForm ? (
 				<div className="rounded-lg border-2 border-border border-dashed py-12 text-center">
 					<h3 className="mb-2 font-medium text-lg">No sections yet</h3>
 					<p className="mb-4 text-muted-foreground">
@@ -107,58 +161,36 @@ export const CourseContentManager = ({
 					</Button>
 				</div>
 			) : (
-				<div className="space-y-4">
-					{sections.map((section) => (
-						<div key={section.id}>
-							{editingSectionId === section.id ? (
-								<SectionEditor
-									section={section}
-									courseId={courseId}
-									onSave={handleUpdateSection}
-									onCancel={() => setEditingSectionId(null)}
-									onDelete={() => handleDeleteSection(section.id)}
-									loading={isUpdatingSection}
-									isEdit={true}
-								/>
-							) : (
-								<div className="rounded-lg border border-border p-4">
-									<div className="flex items-center justify-between">
-										<div className="flex items-center gap-3">
-											<div className="h-5 w-5 text-muted-foreground">⋮⋮</div>
-											<div>
-												<h3 className="font-medium">{section.title}</h3>
-												{section.description && (
-													<p className="line-clamp-1 text-muted-foreground text-sm">
-														{section.description}
-													</p>
-												)}
-											</div>
-										</div>
-										<div className="flex items-center gap-2">
-											<span className="text-muted-foreground text-sm">
-												{section.lessons?.length || 0} lessons
-											</span>
-											<Button
-												type="button"
-												size="sm"
-												onClick={() => setEditingSectionId(section.id)}
-											>
-												Edit
-											</Button>
-											<Button
-												type="button"
-												size="sm"
-												onClick={() => handleDeleteSection(section.id)}
-												disabled={isDeletingSection}
-											>
-												Delete
-											</Button>
-										</div>
-									</div>
-								</div>
-							)}
+				<div className="relative">
+					{isReorderingSections && (
+						<div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-background/80 backdrop-blur-sm">
+							<div className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 shadow-lg">
+								<div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+								<span className="text-sm">Reordering sections...</span>
+							</div>
 						</div>
-					))}
+					)}
+					<DndContext
+						sensors={sensors}
+						collisionDetection={closestCenter}
+						onDragEnd={handleDragEnd}
+					>
+						<SortableContext
+							items={displaySections.map((s) => s.id)}
+							strategy={verticalListSortingStrategy}
+						>
+							<div className="space-y-4">
+								{displaySections.map((section) => (
+									<SectionListItem
+										key={section.id}
+										section={section}
+										onDelete={handleDeleteSection}
+										isDeleting={isDeletingSection}
+									/>
+								))}
+							</div>
+						</SortableContext>
+					</DndContext>
 				</div>
 			)}
 		</div>
