@@ -7,6 +7,7 @@ from sqlmodel import Session
 from src.database.engine import get_session as get_db
 from src.database.models import Role, User
 from src.modules.user.user_methods import (
+    ban_user,
     create_user,
     delete_user,
     get_all_users,
@@ -82,3 +83,11 @@ def delete_user_endpoint(user_id: str, db: Session = Depends(get_db)):
     if not delete_user(db, user_id):
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted"}
+
+
+@router.post("/users/{user_id}/ban", response_model=User)
+def ban_user_endpoint(user_id: str, db: Session = Depends(get_db)):
+    user = ban_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user

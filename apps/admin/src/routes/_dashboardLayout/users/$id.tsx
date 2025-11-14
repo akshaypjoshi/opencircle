@@ -1,14 +1,20 @@
 import { Button } from "@opencircle/ui";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { format } from "date-fns";
 import {
 	ArrowLeft,
+	Ban,
 	Calendar,
 	Clock,
 	Mail,
 	Shield,
+	Trash2,
 	User as UserIcon,
 } from "lucide-react";
+import { useState } from "react";
+import { useBanUser } from "../../../features/user/hooks/useBanUser";
+import { useDeleteUser } from "../../../features/user/hooks/useDeleteUser";
+import { useUnbanUser } from "../../../features/user/hooks/useUnbanUser";
 import { useUser } from "../../../features/user/hooks/useUser";
 
 export const Route = createFileRoute("/_dashboardLayout/users/$id")({
@@ -16,8 +22,15 @@ export const Route = createFileRoute("/_dashboardLayout/users/$id")({
 });
 
 function RouteComponent() {
+	const navigate = useNavigate();
 	const { id } = Route.useParams();
 	const { user, isUserLoading } = useUser(id);
+	const { banUser, isBanning } = useBanUser();
+	const { unbanUser, isUnbanning } = useUnbanUser();
+	const { deleteUser, isDeleting } = useDeleteUser();
+	const [showBanConfirm, setShowBanConfirm] = useState(false);
+	const [showUnbanConfirm, setShowUnbanConfirm] = useState(false);
+	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
 	if (isUserLoading) {
 		return <div>Loading...</div>;
@@ -38,7 +51,32 @@ function RouteComponent() {
 					</Button>
 				</Link>
 				<div className="flex gap-2">
-					<Button variant="secondary">Ban User</Button>
+					{user.is_active ? (
+						<Button
+							variant="destructive"
+							onClick={() => setShowBanConfirm(true)}
+							disabled={isBanning}
+						>
+							<Ban size={16} className="mr-2" />
+							{isBanning ? "Banning..." : "Ban User"}
+						</Button>
+					) : (
+						<Button
+							variant="secondary"
+							onClick={() => setShowUnbanConfirm(true)}
+							disabled={isUnbanning}
+						>
+							{isUnbanning ? "Unbanning..." : "Unban User"}
+						</Button>
+					)}
+					<Button
+						variant="destructive"
+						onClick={() => setShowDeleteConfirm(true)}
+						disabled={isDeleting}
+					>
+						<Trash2 size={16} className="mr-2" />
+						{isDeleting ? "Deleting..." : "Delete User"}
+					</Button>
 				</div>
 			</div>
 
@@ -155,6 +193,124 @@ function RouteComponent() {
 					</div>
 				</div>
 			</div>
+
+			{/* Ban Confirmation Dialog */}
+			{showBanConfirm && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+					<div className="mx-4 w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-lg">
+						<h3 className="mb-4 font-semibold text-lg">Ban User</h3>
+						<p className="mb-6 text-foreground/80 text-sm">
+							Are you sure you want to ban{" "}
+							<span className="font-semibold">
+								{user.name || user.username}
+							</span>
+							? This will deactivate their account and they won't be able to
+							access the platform.
+						</p>
+						<div className="flex justify-end gap-3">
+							<Button
+								variant="secondary"
+								onClick={() => setShowBanConfirm(false)}
+								disabled={isBanning}
+							>
+								Cancel
+							</Button>
+							<Button
+								variant="destructive"
+								onClick={() => {
+									banUser(id, {
+										onSuccess: () => {
+											setShowBanConfirm(false);
+										},
+									});
+								}}
+								disabled={isBanning}
+							>
+								{isBanning ? "Banning..." : "Ban User"}
+							</Button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Unban Confirmation Dialog */}
+			{showUnbanConfirm && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+					<div className="mx-4 w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-lg">
+						<h3 className="mb-4 font-semibold text-lg">Unban User</h3>
+						<p className="mb-6 text-foreground/80 text-sm">
+							Are you sure you want to unban{" "}
+							<span className="font-semibold">
+								{user.name || user.username}
+							</span>
+							? This will reactivate their account and they will be able to
+							access the platform again.
+						</p>
+						<div className="flex justify-end gap-3">
+							<Button
+								variant="secondary"
+								onClick={() => setShowUnbanConfirm(false)}
+								disabled={isUnbanning}
+							>
+								Cancel
+							</Button>
+							<Button
+								onClick={() => {
+									unbanUser(id, {
+										onSuccess: () => {
+											setShowUnbanConfirm(false);
+										},
+									});
+								}}
+								disabled={isUnbanning}
+							>
+								{isUnbanning ? "Unbanning..." : "Unban User"}
+							</Button>
+						</div>
+					</div>
+				</div>
+			)}
+
+			{/* Delete Confirmation Dialog */}
+			{showDeleteConfirm && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+					<div className="mx-4 w-full max-w-md rounded-lg border border-border bg-background p-6 shadow-lg">
+						<h3 className="mb-4 font-semibold text-lg text-red-600">
+							Delete User
+						</h3>
+						<p className="mb-6 text-foreground/80 text-sm">
+							Are you sure you want to permanently delete{" "}
+							<span className="font-semibold">
+								{user.name || user.username}
+							</span>
+							? This action cannot be undone and will remove all user data from
+							the system.
+						</p>
+						<div className="flex justify-end gap-3">
+							<Button
+								variant="secondary"
+								onClick={() => setShowDeleteConfirm(false)}
+								disabled={isDeleting}
+							>
+								Cancel
+							</Button>
+							<Button
+								variant="destructive"
+								onClick={() => {
+									deleteUser(id, {
+										onSuccess: () => {
+											navigate({ to: "/users" });
+										},
+									});
+								}}
+								disabled={isDeleting}
+							>
+								{isDeleting ? "Deleting..." : "Delete User"}
+							</Button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -44,10 +44,54 @@ def update_user(db: Session, user_id: str, update_data: dict) -> Optional[User]:
 
 
 def delete_user(db: Session, user_id: str) -> bool:
-    """Delete a user by ID."""
+    """Delete a user by ID and all related records."""
+    from src.database.models import (
+        ChannelMember,
+        Media,
+        Notification,
+        PasswordReset,
+        Post,
+        Reaction,
+        Resource,
+        UserSettings,
+        UserSocial,
+    )
+
     user = db.get(User, user_id)
     if not user:
         return False
+
+    # Delete related records in order to avoid foreign key constraint violations
+    # Delete reactions first
+    db.query(Reaction).filter(Reaction.user_id == user_id).delete()
+
+    # Delete notifications (both sent and received)
+    db.query(Notification).filter(
+        (Notification.sender_id == user_id) | (Notification.recipient_id == user_id)
+    ).delete()
+
+    # Delete password resets
+    db.query(PasswordReset).filter(PasswordReset.user_id == user_id).delete()
+
+    # Delete channel memberships
+    db.query(ChannelMember).filter(ChannelMember.user_id == user_id).delete()
+
+    # Delete resources
+    db.query(Resource).filter(Resource.user_id == user_id).delete()
+
+    # Delete media
+    db.query(Media).filter(Media.user_id == user_id).delete()
+
+    # Delete posts
+    db.query(Post).filter(Post.user_id == user_id).delete()
+
+    # Delete user settings
+    db.query(UserSettings).filter(UserSettings.user_id == user_id).delete()
+
+    # Delete user social
+    db.query(UserSocial).filter(UserSocial.user_id == user_id).delete()
+
+    # Finally, delete the user
     db.delete(user)
     db.commit()
     return True
@@ -62,3 +106,14 @@ def get_all_users(
         statement = statement.where(col(User.username).ilike(f"%{query}%"))
     statement = statement.offset(skip).limit(limit)
     return list(db.exec(statement).all())
+
+
+def ban_user(db: Session, user_id: str) -> Optional[User]:
+    """Ban a user by setting is_active to False."""
+    user = db.get(User, user_id)
+    if not user:
+        return None
+    user.is_active = False
+    db.commit()
+    db.refresh(user)
+    return user

@@ -51,4 +51,8 @@ export class UsersRouter extends BaseRouter {
 	async delete(userId: string): Promise<{ message: string }> {
 		return this.client.delete<{ message: string }>(`users/${userId}`);
 	}
+
+	async ban(userId: string): Promise<User> {
+		return this.client.post<User>(`users/${userId}/ban`, {});
+	}
 }

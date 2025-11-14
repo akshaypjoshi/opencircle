@@ -128,6 +128,10 @@ def authenticate_github_user(
     user = get_user_by_email(db, github_user["email"])
 
     if user:
+        # Check if user is banned (is_active = False means banned)
+        if not user.is_active:
+            return None
+
         # Update user info from GitHub if needed
         update_data = {}
         if (

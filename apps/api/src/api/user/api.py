@@ -4,11 +4,13 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import joinedload
 from sqlmodel import Session
 
+from src.api.account.api import get_current_admin
 from src.database.engine import get_session as get_db
 from src.database.models import User, UserSocial
 from src.modules.media.media_methods import create_media
 from src.modules.storages.storage_methods import upload_file
 from src.modules.user.user_methods import (
+    ban_user,
     create_user,
     delete_user,
     get_all_users,
@@ -145,7 +147,23 @@ def update_user_with_file_endpoint(
 
 
 @router.delete("/users/{user_id}")
-def delete_user_endpoint(user_id: str, db: Session = Depends(get_db)):
+def delete_user_endpoint(
+    user_id: str,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
     if not delete_user(db, user_id):
         raise HTTPException(status_code=404, detail="User not found")
     return {"message": "User deleted"}
+
+
+@router.post("/users/{user_id}/ban", response_model=UserResponse)
+def ban_user_endpoint(
+    user_id: str,
+    db: Session = Depends(get_db),
+    current_admin: User = Depends(get_current_admin),
+):
+    user = ban_user(db, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
