@@ -40,8 +40,14 @@ export const useGitHubAuth = () => {
 			navigate({ to: "/" });
 		},
 		onError: (error) => {
-			if (error instanceof HTTPError && error.response.status === 400) {
-				toast.error("GitHub authentication failed. Please try again.");
+			if (error instanceof HTTPError) {
+				if (error.response.status === 403) {
+					toast.error("Your account has been banned. Please contact support.");
+				} else if (error.response.status === 400) {
+					toast.error("GitHub authentication failed. Please try again.");
+				} else {
+					toast.error("An error occurred during GitHub login.");
+				}
 			} else {
 				toast.error("An error occurred during GitHub login.");
 			}

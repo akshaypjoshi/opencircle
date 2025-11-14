@@ -6,7 +6,7 @@ from sqlmodel import Session
 
 from src.core.settings import settings
 from src.database.engine import get_session as get_db
-from src.database.models import User, UserSettings, UserSocial
+from src.database.models import Role, User, UserSettings, UserSocial
 from src.modules.user.user_methods import get_user_by_username
 
 from .serializer import UserResponse
@@ -48,6 +48,18 @@ def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
     return user
+
+
+def get_current_admin(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Get current user and verify they are an admin."""
+    if current_user.role != Role.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin access required",
+        )
+    return current_user
 
 
 @router.get("/account", response_model=UserResponse)

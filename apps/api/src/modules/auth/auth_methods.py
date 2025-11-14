@@ -139,6 +139,10 @@ def login_user(db: Session, username: str, password: str) -> Optional[Token]:
     if not user:
         return None
 
+    # Check if user is banned (is_active = False means banned)
+    if not user.is_active:
+        return None
+
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.username}, expires_delta=access_token_expires

@@ -116,13 +116,17 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 		},
 		{
 			accessorKey: "is_active",
-			header: "Active",
+			header: "Status",
 			cell: ({ row }) => (
 				<div className="text-sm">
 					{(row.getValue("is_active") as boolean) ? (
-						<span>Active</span>
+						<span className="rounded-full bg-emerald-500 px-2.5 py-1 font-medium text-white text-xs">
+							Active
+						</span>
 					) : (
-						<span>Inactive</span>
+						<span className="rounded-full bg-rose-500 px-2.5 py-1 font-medium text-white text-xs">
+							Inactive
+						</span>
 					)}
 				</div>
 			),
@@ -194,16 +198,18 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 							<Eye size={14} />
 							View Details
 						</Button>
-						<Button
-							size="sm"
-							variant="secondary"
-							onClick={() => {
-								console.log("Ban user:", user);
-							}}
-						>
-							<Trash2 size={14} />
-							Ban
-						</Button>
+						{user.is_active && (
+							<Button
+								size="sm"
+								variant="secondary"
+								onClick={() => {
+									console.log("Ban user:", user);
+								}}
+							>
+								<Trash2 size={14} />
+								Ban
+							</Button>
+						)}
 					</div>
 				);
 			},

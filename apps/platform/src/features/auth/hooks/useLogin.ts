@@ -54,9 +54,15 @@ export const useLogin = () => {
 			localStorage.setItem("token", data.access_token);
 			navigate({ to: "/" });
 		},
-		onError: (error) => {
-			if (error instanceof HTTPError && error.response.status === 401) {
-				toast.error("Invalid username or password");
+		onError: async (error) => {
+			if (error instanceof HTTPError) {
+				if (error.response.status === 403) {
+					toast.error("Your account has been banned. Please contact support.");
+				} else if (error.response.status === 401) {
+					toast.error("Invalid username or password");
+				} else {
+					toast.error("An error occurred during login. Please try again.");
+				}
 			}
 		},
 	});

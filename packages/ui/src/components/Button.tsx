@@ -8,6 +8,7 @@ const button = tv({
 		variant: {
 			primary: "bg-primary border-primary",
 			secondary: "bg-secondary border-foreground/10",
+			destructive: "bg-red-600 text-white border-red-600 hover:bg-red-700",
 		},
 		size: {
 			sm: "px-3 py-1 text-xs",

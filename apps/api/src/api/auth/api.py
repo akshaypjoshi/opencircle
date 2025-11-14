@@ -61,6 +61,16 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
 
 @router.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
+    from src.modules.user.user_methods import get_user_by_username
+
+    # Check if user exists and is banned before attempting login
+    user = get_user_by_username(db, request.username)
+    if user and not user.is_active:
+        raise HTTPException(
+            status_code=403,
+            detail="Your account has been banned. Please contact support.",
+        )
+
     result = login_user(db, request.username, request.password)
     if not result:
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -103,8 +113,8 @@ async def github_callback(
         user, token = await handle_github_callback(db, request.code)
         if not user:
             raise HTTPException(
-                status_code=400,
-                detail="GitHub authentication failed: Unable to create or find user",
+                status_code=403,
+                detail="Your account has been banned. Please contact support.",
             )
 
         from datetime import timedelta
