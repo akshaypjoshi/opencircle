@@ -1,5 +1,6 @@
 import type { User } from "@opencircle/core";
 import { Button, Input } from "@opencircle/ui";
+import { useRouter } from "@tanstack/react-router";
 import {
 	type ColumnDef,
 	flexRender,
@@ -25,6 +26,7 @@ interface UserTableProps {
 }
 
 export const UserTable = ({ users, isLoading }: UserTableProps) => {
+	const router = useRouter();
 	const [rowSelection, setRowSelection] = useState({});
 	const [sorting, setSorting] = useState<SortingState>([]);
 	const [searchQuery, setSearchQuery] = useState("");
@@ -186,7 +188,7 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 						<Button
 							size="sm"
 							onClick={() => {
-								console.log("View details for:", user);
+								router.navigate({ to: `/users/${user.id}` });
 							}}
 						>
 							<Eye size={14} />
