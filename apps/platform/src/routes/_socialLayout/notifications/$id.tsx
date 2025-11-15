@@ -38,7 +38,7 @@ export const Route = createFileRoute("/_socialLayout/notifications/$id")({
 
 function NotificationDetail() {
 	const { id } = Route.useParams();
-	const { notifications } = useNotifications(0, 100);
+	const { notifications } = useNotifications(20);
 
 	const notification = notifications.find((n: { id: string }) => n.id === id);
 
