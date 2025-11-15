@@ -1,15 +1,35 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	useInfiniteQuery,
+	useMutation,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { HTTPError } from "ky";
 import { api } from "../../../utils/api";
 
-export const useNotifications = (skip: number = 0, limit: number = 100) => {
-	const { data, isLoading, isError, error, refetch } = useQuery({
+export const useNotifications = (limit: number = 20) => {
+	const {
+		data,
+		isLoading,
+		isError,
+		error,
+		refetch,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useInfiniteQuery({
 		enabled: localStorage.getItem("token") !== null,
-		queryKey: ["notifications", skip, limit],
-		queryFn: async () => {
-			const response = await api.notifications.getAll(skip, limit);
+		queryKey: ["notifications"],
+		queryFn: async ({ pageParam = 0 }) => {
+			const response = await api.notifications.getAll(pageParam, limit);
 			return response;
 		},
+		getNextPageParam: (lastPage, allPages) => {
+			if (lastPage.length < limit) {
+				return undefined;
+			}
+			return allPages.length * limit;
+		},
+		initialPageParam: 0,
 		retry: (failureCount, error) => {
 			if (error instanceof HTTPError && error.response.status === 401) {
 				return false;
@@ -18,12 +38,19 @@ export const useNotifications = (skip: number = 0, limit: number = 100) => {
 		},
 	});
 
+	// Flatten all pages into a single array of notifications
+	// useInfiniteQuery returns data.pages as an array of arrays (one array per page)
+	const notifications = data?.pages.flat() || [];
+
 	return {
-		notifications: data || [],
+		notifications,
 		isNotificationsLoading: isLoading,
 		isNotificationsError: isError,
 		notificationsError: error,
 		refetchNotifications: refetch,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
 	};
 };
 

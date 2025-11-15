@@ -1,19 +1,43 @@
+import { useEffect, useRef } from "react";
 import { useNotifications } from "../hooks/useNotifications";
 import { NotificationItem } from "./notificationItem";
 
 interface NotificationListProps {
-	skip?: number;
 	limit?: number;
 }
 
-export const NotificationList = ({
-	skip = 0,
-	limit = 100,
-}: NotificationListProps) => {
-	const { notifications, isNotificationsLoading } = useNotifications(
-		skip,
-		limit,
-	);
+export const NotificationList = ({ limit = 20 }: NotificationListProps) => {
+	const {
+		notifications,
+		isNotificationsLoading,
+		fetchNextPage,
+		hasNextPage,
+		isFetchingNextPage,
+	} = useNotifications(limit);
+
+	const observerTarget = useRef<HTMLDivElement>(null);
+
+	useEffect(() => {
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && hasNextPage && !isFetchingNextPage) {
+					fetchNextPage();
+				}
+			},
+			{ threshold: 1.0 },
+		);
+
+		const currentTarget = observerTarget.current;
+		if (currentTarget) {
+			observer.observe(currentTarget);
+		}
+
+		return () => {
+			if (currentTarget) {
+				observer.unobserve(currentTarget);
+			}
+		};
+	}, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
 	if (isNotificationsLoading) {
 		return (
@@ -36,6 +60,15 @@ export const NotificationList = ({
 			{notifications.map((notification) => (
 				<NotificationItem key={notification.id} notification={notification} />
 			))}
+			{hasNextPage && (
+				<div ref={observerTarget} className="p-4 text-center">
+					{isFetchingNextPage ? (
+						<div className="text-muted-foreground text-sm">Loading more...</div>
+					) : (
+						<div className="h-4" />
+					)}
+				</div>
+			)}
 		</div>
 	);
 };
