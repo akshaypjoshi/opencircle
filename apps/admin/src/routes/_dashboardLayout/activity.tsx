@@ -1,21 +1,16 @@
+import { Button } from "@opencircle/ui";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { format, subDays } from "date-fns";
 import { Activity, Clock, TrendingUp, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import {
-	Area,
-	AreaChart,
-	Bar,
-	BarChart,
-	CartesianGrid,
 	Legend,
 	Line,
 	LineChart,
 	ResponsiveContainer,
 	Tooltip,
 	XAxis,
-	YAxis,
 } from "recharts";
 import { METADATA } from "../../constants/metadata";
 import { api } from "../../utils/api";
@@ -44,7 +39,6 @@ export const Route = createFileRoute("/_dashboardLayout/activity")({
 function RouteComponent() {
 	const [dateRange, setDateRange] = useState<7 | 14 | 30>(7);
 
-	// Use useMemo to prevent date recreation on every render
 	const { startDate, endDate } = useMemo(() => {
 		const end = new Date();
 		const start = subDays(end, dateRange);
@@ -52,79 +46,66 @@ function RouteComponent() {
 			startDate: start.toISOString(),
 			endDate: end.toISOString(),
 		};
-	}, [dateRange]); // Recalculate when date range changes
+	}, [dateRange]);
 
-	// Fetch presence stats
 	const { data: stats } = useQuery({
 		queryKey: ["presence", "stats"],
 		queryFn: () => api.presence.getStats(),
-		staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+		staleTime: 5 * 60 * 1000,
 	});
 
-	// Fetch timeseries data
 	const { data: timeseries } = useQuery({
 		queryKey: ["presence", "timeseries", startDate, endDate],
 		queryFn: () => api.presence.getTimeseries(startDate, endDate, "day"),
-		staleTime: 5 * 60 * 1000, // Consider data fresh for 5 minutes
+		staleTime: 5 * 60 * 1000,
 	});
 
-	// Fetch active users
 	const { data: activeUsers } = useQuery({
 		queryKey: ["presence", "active"],
 		queryFn: () => api.presence.getActiveNow(),
-		refetchInterval: 30000, // Refresh every 30 seconds
-		staleTime: 30000, // Match refetch interval
+		refetchInterval: 30000,
+		staleTime: 30000,
 	});
 
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center justify-between">
 				<div>
-					<h1 className="font-bold text-2xl text-foreground">User Activity</h1>
-					<p className="text-foreground">
-						Monitor user presence and engagement metrics
-					</p>
+					<h1 className="font-medium text-2xl text-foreground">
+						User Activity
+					</h1>
 				</div>
 				<div className="flex gap-2">
-					<button
+					<Button
 						type="button"
 						onClick={() => setDateRange(7)}
-						className={`rounded-lg px-4 py-2 font-medium text-sm transition-colors ${
-							dateRange === 7
-								? "bg-foreground text-background"
-								: "bg-background text-foreground hover:bg-background-secondary"
-						}`}
+						size="sm"
+						variant={dateRange === 7 ? "primary" : "secondary"}
 					>
 						Last 7 days
-					</button>
-					<button
+					</Button>
+					<Button
 						type="button"
 						onClick={() => setDateRange(14)}
-						className={`rounded-lg px-4 py-2 font-medium text-sm transition-colors ${
-							dateRange === 14
-								? "bg-foreground text-background"
-								: "bg-background text-foreground hover:bg-background-secondary"
-						}`}
+						size="sm"
+						variant={dateRange === 14 ? "primary" : "secondary"}
 					>
 						Last 14 days
-					</button>
-					<button
+					</Button>
+					<Button
 						type="button"
 						onClick={() => setDateRange(30)}
-						className={`rounded-lg px-4 py-2 font-medium text-sm transition-colors ${
-							dateRange === 30
-								? "bg-foreground text-background"
-								: "bg-background text-foreground hover:bg-background-secondary"
-						}`}
+						size="sm"
+						variant={dateRange === 30 ? "primary" : "secondary"}
 					>
 						Last 30 days
-					</button>
+					</Button>
 				</div>
 			</div>
 
 			{/* Stats Cards */}
 			<div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-				<div className="rounded-lg bg-background p-6 shadow">
+				<div className="rounded-lg bg-background-secondary p-6 shadow">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="font-medium text-foreground text-sm">
@@ -134,12 +115,12 @@ function RouteComponent() {
 								{stats?.total_sessions || 0}
 							</p>
 						</div>
-						<div className="rounded-lg bg-background p-3">
+						<div>
 							<Activity className="h-6 w-6 text-foreground" />
 						</div>
 					</div>
 				</div>
-				<div className="rounded-lg bg-background p-6 shadow">
+				<div className="rounded-lg bg-background-secondary p-6 shadow">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="font-medium text-foreground text-sm">Active Now</p>
@@ -151,12 +132,12 @@ function RouteComponent() {
 								Live
 							</div>
 						</div>
-						<div className="rounded-lg bg-background p-3">
+						<div>
 							<Users className="h-6 w-6 text-foreground" />
 						</div>
 					</div>
 				</div>
-				<div className="rounded-lg bg-background p-6 shadow">
+				<div className="rounded-lg bg-background-secondary p-6 shadow">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="font-medium text-foreground text-sm">
@@ -166,12 +147,12 @@ function RouteComponent() {
 								{stats?.unique_users || 0}
 							</p>
 						</div>
-						<div className="rounded-lg bg-background p-3">
+						<div>
 							<TrendingUp className="h-6 w-6 text-foreground" />
 						</div>
 					</div>
 				</div>
-				<div className="rounded-lg bg-background p-6 shadow">
+				<div className="rounded-lg bg-background-secondary p-6 shadow">
 					<div className="flex items-center justify-between">
 						<div>
 							<p className="font-medium text-foreground text-sm">
@@ -181,136 +162,73 @@ function RouteComponent() {
 								{Math.round(stats?.average_duration_seconds || 0)}s
 							</p>
 						</div>
-						<div className="rounded-lg bg-background p-3">
+						<div>
 							<Clock className="h-6 w-6 text-foreground" />
 						</div>
 					</div>
 				</div>
 			</div>
 
-			{/* Charts */}
-			<div className="grid gap-6 lg:grid-cols-2">
-				{/* Session Count Over Time */}
-				<div className="rounded-lg bg-background p-6 shadow">
-					<h3 className="mb-4 font-semibold text-foreground text-lg">
-						Session Activity
-					</h3>
-					<ResponsiveContainer width="100%" height={300}>
-						<AreaChart data={timeseries?.data || []}>
-							<CartesianGrid strokeDasharray="3 3" />
-							<XAxis
-								dataKey="timestamp"
-								tickFormatter={(value) => format(new Date(value), "MMM dd")}
-							/>
-							<YAxis />
-							<Tooltip
-								labelFormatter={(value) =>
-									format(new Date(value as string), "PPP")
+			{/* Combined Chart */}
+			<div className="rounded-lg bg-background-secondary p-6 shadow">
+				<h3 className="mb-4 font-semibold text-foreground text-lg">
+					Activity Overview
+				</h3>
+				<ResponsiveContainer width="100%" height={400}>
+					<LineChart data={timeseries?.data || []}>
+						<XAxis
+							dataKey="timestamp"
+							tickFormatter={(value) => format(new Date(value), "MMM dd")}
+						/>
+						<Tooltip
+							labelFormatter={(value) =>
+								format(new Date(value as string), "PPP")
+							}
+							formatter={(value: number, name: string) => {
+								if (name === "Total Duration") {
+									return [`${Math.round(value / 60)}m`, name];
 								}
-							/>
-							<Legend />
-							<Area
-								type="monotone"
-								dataKey="session_count"
-								name="Sessions"
-								stroke="#8884d8"
-								fill="#8884d8"
-								fillOpacity={0.6}
-							/>
-						</AreaChart>
-					</ResponsiveContainer>
-				</div>
-
-				{/* Unique Users Over Time */}
-				<div className="rounded-lg bg-background p-6 shadow">
-					<h3 className="mb-4 font-semibold text-foreground text-lg">
-						Unique Users
-					</h3>
-					<ResponsiveContainer width="100%" height={300}>
-						<LineChart data={timeseries?.data || []}>
-							<CartesianGrid strokeDasharray="3 3" />
-							<XAxis
-								dataKey="timestamp"
-								tickFormatter={(value) => format(new Date(value), "MMM dd")}
-							/>
-							<YAxis />
-							<Tooltip
-								labelFormatter={(value) =>
-									format(new Date(value as string), "PPP")
+								if (name === "Avg Duration") {
+									return [`${Math.round(value)}s`, name];
 								}
-							/>
-							<Legend />
-							<Line
-								type="monotone"
-								dataKey="unique_users"
-								name="Unique Users"
-								stroke="#82ca9d"
-								strokeWidth={2}
-							/>
-						</LineChart>
-					</ResponsiveContainer>
-				</div>
-
-				{/* Average Duration */}
-				<div className="rounded-lg bg-background p-6 shadow">
-					<h3 className="mb-4 font-semibold text-foreground text-lg">
-						Average Session Duration
-					</h3>
-					<ResponsiveContainer width="100%" height={300}>
-						<BarChart data={timeseries?.data || []}>
-							<CartesianGrid strokeDasharray="3 3" />
-							<XAxis
-								dataKey="timestamp"
-								tickFormatter={(value) => format(new Date(value), "MMM dd")}
-							/>
-							<YAxis />
-							<Tooltip
-								labelFormatter={(value) =>
-									format(new Date(value as string), "PPP")
-								}
-								formatter={(value: number) => `${Math.round(value)}s`}
-							/>
-							<Legend />
-							<Bar
-								dataKey="average_duration_seconds"
-								name="Avg Duration (s)"
-								fill="#ffc658"
-							/>
-						</BarChart>
-					</ResponsiveContainer>
-				</div>
-
-				{/* Total Duration */}
-				<div className="rounded-lg bg-background p-6 shadow">
-					<h3 className="mb-4 font-semibold text-foreground text-lg">
-						Total Time Spent
-					</h3>
-					<ResponsiveContainer width="100%" height={300}>
-						<AreaChart data={timeseries?.data || []}>
-							<CartesianGrid strokeDasharray="3 3" />
-							<XAxis
-								dataKey="timestamp"
-								tickFormatter={(value) => format(new Date(value), "MMM dd")}
-							/>
-							<YAxis />
-							<Tooltip
-								labelFormatter={(value) =>
-									format(new Date(value as string), "PPP")
-								}
-								formatter={(value: number) => `${Math.round(value / 60)}m`}
-							/>
-							<Legend />
-							<Area
-								type="monotone"
-								dataKey="total_duration_seconds"
-								name="Total Duration (s)"
-								stroke="#ff7300"
-								fill="#ff7300"
-								fillOpacity={0.6}
-							/>
-						</AreaChart>
-					</ResponsiveContainer>
-				</div>
+								return [value, name];
+							}}
+						/>
+						<Legend />
+						<Line
+							yAxisId="left"
+							type="monotone"
+							dataKey="session_count"
+							name="Sessions"
+							stroke="#8884d8"
+							strokeWidth={2}
+						/>
+						<Line
+							yAxisId="left"
+							type="monotone"
+							dataKey="unique_users"
+							name="Unique Users"
+							stroke="#82ca9d"
+							strokeWidth={2}
+						/>
+						<Line
+							yAxisId="right"
+							type="monotone"
+							dataKey="average_duration_seconds"
+							name="Avg Duration"
+							stroke="#ffc658"
+							strokeWidth={2}
+						/>
+						<Line
+							yAxisId="right"
+							type="monotone"
+							dataKey="total_duration_seconds"
+							name="Total Duration"
+							stroke="#ff7300"
+							strokeWidth={2}
+						/>
+					</LineChart>
+				</ResponsiveContainer>
 			</div>
 
 			{/* Active Users List */}

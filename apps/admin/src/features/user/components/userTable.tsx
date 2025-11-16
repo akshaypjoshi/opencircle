@@ -10,14 +10,7 @@ import {
 	type SortingState,
 	useReactTable,
 } from "@tanstack/react-table";
-import {
-	ArrowDown,
-	ArrowUp,
-	ArrowUpDown,
-	Eye,
-	Search,
-	Trash2,
-} from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Eye, Search } from "lucide-react";
 import { useMemo, useState } from "react";
 
 interface UserTableProps {
@@ -198,18 +191,6 @@ export const UserTable = ({ users, isLoading }: UserTableProps) => {
 							<Eye size={14} />
 							View Details
 						</Button>
-						{user.is_active && (
-							<Button
-								size="sm"
-								variant="secondary"
-								onClick={() => {
-									console.log("Ban user:", user);
-								}}
-							>
-								<Trash2 size={14} />
-								Ban
-							</Button>
-						)}
 					</div>
 				);
 			},
