@@ -23,6 +23,19 @@ export const useAppSettings = () => {
 		},
 	});
 
+	const {
+		data: installationData,
+		isLoading: isInstallationLoading,
+		isError: isInstallationError,
+		error: installationError,
+	} = useQuery({
+		queryKey: ["installationStatus"],
+		queryFn: async () => {
+			const response = await api.appSettings.getInstallationStatus();
+			return response;
+		},
+	});
+
 	return {
 		appSettings: data,
 		isAppSettingsLoading: isLoading,
@@ -30,5 +43,9 @@ export const useAppSettings = () => {
 		appSettingsError: error,
 		updateAppSettings: updateMutation.mutate,
 		isUpdatingAppSettings: updateMutation.isPending,
+		installationStatus: installationData,
+		isInstallationLoading,
+		isInstallationError,
+		installationError,
 	};
 };

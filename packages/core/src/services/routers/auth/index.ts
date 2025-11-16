@@ -25,6 +25,10 @@ export class AuthRouter extends BaseRouter {
 		return this.client.post<LoginResponse>("login", data);
 	}
 
+	async registerAdmin(data: RegisterRequest): Promise<RegisterResponse> {
+		return this.client.post<RegisterResponse>("register-admin", data);
+	}
+
 	async githubLogin(): Promise<GitHubAuthUrlResponse> {
 		return this.client.get<GitHubAuthUrlResponse>("github/login");
 	}

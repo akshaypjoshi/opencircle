@@ -1,6 +1,9 @@
 export { Api, createApi } from "../utils/api";
 export { ApiClient } from "../utils/apiClient";
-export { AppSettingsRouter } from "./routers/appsettings";
+export {
+	AppSettingsRouter,
+	type InstallationStatus,
+} from "./routers/appsettings";
 export { ArticlesRouter } from "./routers/articles";
 export { AuthRouter } from "./routers/auth";
 export { ChannelsRouter } from "./routers/channels";
