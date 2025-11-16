@@ -1,8 +1,8 @@
 from typing import Optional
 
-from sqlmodel import Session, col, select
+from sqlmodel import Session, col, func, select
 
-from src.database.models import User
+from src.database.models import Role, User
 
 
 def create_user(db: Session, user_data: dict) -> User:
@@ -63,33 +63,51 @@ def delete_user(db: Session, user_id: str) -> bool:
 
     # Delete related records in order to avoid foreign key constraint violations
     # Delete reactions first
-    db.query(Reaction).filter(Reaction.user_id == user_id).delete()
+    stmt = select(Reaction).where(Reaction.user_id == user_id)
+    for reaction in db.exec(stmt).all():
+        db.delete(reaction)
 
     # Delete notifications (both sent and received)
-    db.query(Notification).filter(
+    stmt = select(Notification).where(
         (Notification.sender_id == user_id) | (Notification.recipient_id == user_id)
-    ).delete()
+    )
+    for notification in db.exec(stmt).all():
+        db.delete(notification)
 
     # Delete password resets
-    db.query(PasswordReset).filter(PasswordReset.user_id == user_id).delete()
+    stmt = select(PasswordReset).where(PasswordReset.user_id == user_id)
+    for password_reset in db.exec(stmt).all():
+        db.delete(password_reset)
 
     # Delete channel memberships
-    db.query(ChannelMember).filter(ChannelMember.user_id == user_id).delete()
+    stmt = select(ChannelMember).where(ChannelMember.user_id == user_id)
+    for channel_member in db.exec(stmt).all():
+        db.delete(channel_member)
 
     # Delete resources
-    db.query(Resource).filter(Resource.user_id == user_id).delete()
+    stmt = select(Resource).where(Resource.user_id == user_id)
+    for resource in db.exec(stmt).all():
+        db.delete(resource)
 
     # Delete media
-    db.query(Media).filter(Media.user_id == user_id).delete()
+    stmt = select(Media).where(Media.user_id == user_id)
+    for media in db.exec(stmt).all():
+        db.delete(media)
 
     # Delete posts
-    db.query(Post).filter(Post.user_id == user_id).delete()
+    stmt = select(Post).where(Post.user_id == user_id)
+    for post in db.exec(stmt).all():
+        db.delete(post)
 
     # Delete user settings
-    db.query(UserSettings).filter(UserSettings.user_id == user_id).delete()
+    stmt = select(UserSettings).where(UserSettings.user_id == user_id)
+    for user_settings in db.exec(stmt).all():
+        db.delete(user_settings)
 
     # Delete user social
-    db.query(UserSocial).filter(UserSocial.user_id == user_id).delete()
+    stmt = select(UserSocial).where(UserSocial.user_id == user_id)
+    for user_social in db.exec(stmt).all():
+        db.delete(user_social)
 
     # Finally, delete the user
     db.delete(user)
@@ -117,3 +135,9 @@ def ban_user(db: Session, user_id: str) -> Optional[User]:
     db.commit()
     db.refresh(user)
     return user
+
+
+def get_admin_count(db: Session) -> int:
+    """Get the count of admin users."""
+    statement = select(func.count(User.id)).where(User.role == Role.ADMIN)
+    return db.exec(statement).one()

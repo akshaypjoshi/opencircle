@@ -5,6 +5,11 @@ import type {
 	AppSettingsUpdate,
 } from "../../types";
 
+export interface InstallationStatus {
+	is_installed: boolean;
+	admin_count: number;
+}
+
 export class AppSettingsRouter extends BaseRouter {
 	async getSettings(): Promise<AppSettings> {
 		return this.client.get<AppSettings>("appsettings/");
@@ -26,5 +31,11 @@ export class AppSettingsRouter extends BaseRouter {
 
 	async getSettingsCount(): Promise<number> {
 		return this.client.get<number>("appsettings/count");
+	}
+
+	async getInstallationStatus(): Promise<InstallationStatus> {
+		return this.client.get<InstallationStatus>(
+			"appsettings/installation-status",
+		);
 	}
 }

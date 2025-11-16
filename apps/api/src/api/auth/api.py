@@ -1,10 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from loguru import logger
 from sqlalchemy.exc import IntegrityError
-from sqlmodel import Session
+from sqlmodel import Session, func, select
 
 from src.core.settings import settings
 from src.database.engine import get_session as get_db
+from src.database.models import Role, User
 from src.modules.appsettings import appsettings_methods
 from src.modules.auth.auth_methods import (
     create_access_token,
@@ -57,6 +58,58 @@ def register(request: RegisterRequest, db: Session = Depends(get_db)):
             request.invite_code,
         )
         return {"message": "User registered successfully", "user_id": user.id}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except IntegrityError as e:
+        db.rollback()
+        error_msg = str(e.orig)
+        if "email" in error_msg.lower():
+            raise HTTPException(status_code=409, detail="Email already registered")
+        elif "username" in error_msg.lower():
+            raise HTTPException(status_code=409, detail="Username already registered")
+        raise HTTPException(
+            status_code=409, detail="Registration failed: duplicate entry"
+        )
+
+
+@router.post("/register-admin")
+def register_admin(request: RegisterRequest, db: Session = Depends(get_db)):
+    """Register a new admin user - only allowed if no admin exists (admin_count == 0)."""
+    # Check if any admin already exists
+    admin_count = db.exec(
+        select(func.count(User.id)).where(User.role == Role.ADMIN)
+    ).one()
+    if admin_count > 0:
+        raise HTTPException(
+            status_code=403,
+            detail="Admin user already exists. Cannot create additional admin accounts.",
+        )
+
+    try:
+        # Create admin user with admin role
+        user = register_user(
+            db,
+            request.username,
+            request.email,
+            request.password,
+            request.name,
+            request.invite_code,
+        )
+
+        # Update user role to admin
+        user.role = Role.ADMIN
+        user.is_active = True  # Admin is active by default
+        db.commit()
+        db.refresh(user)
+
+        # Create user settings for the new admin
+        from src.database.models import UserSettings
+
+        user_settings = UserSettings(user_id=user.id, is_onboarded=False)
+        db.add(user_settings)
+        db.commit()
+
+        return {"message": "Admin registered successfully", "user_id": user.id}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
     except IntegrityError as e:
