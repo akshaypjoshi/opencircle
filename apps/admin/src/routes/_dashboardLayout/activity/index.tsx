@@ -12,10 +12,10 @@ import {
 	Tooltip,
 	XAxis,
 } from "recharts";
-import { METADATA } from "../../constants/metadata";
-import { api } from "../../utils/api";
+import { METADATA } from "../../../constants/metadata";
+import { api } from "../../../utils/api";
 
-export const Route = createFileRoute("/_dashboardLayout/activity")({
+export const Route = createFileRoute("/_dashboardLayout/activity/")({
 	head: () => ({
 		meta: [
 			{

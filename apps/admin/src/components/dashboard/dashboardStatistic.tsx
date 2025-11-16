@@ -17,28 +17,24 @@ export const DashboardStatsCards = ({
 			value: stats.totalUsers,
 			icon: Users,
 			color: "text-foreground",
-			bgColor: "bg-background",
 		},
 		{
 			title: "Total Courses",
 			value: stats.totalCourses,
 			icon: BookOpen,
 			color: "text-foreground",
-			bgColor: "bg-background",
 		},
 		{
 			title: "Active Enrollments",
 			value: stats.activeEnrollments,
 			icon: Activity,
 			color: "text-foreground",
-			bgColor: "bg-background",
 		},
 		{
 			title: "Total Enrollments",
 			value: stats.totalEnrollments,
 			icon: CheckCircle,
 			color: "text-foreground",
-			bgColor: "bg-background",
 		},
 	];
 
@@ -70,7 +66,7 @@ export const DashboardStatsCards = ({
 				return (
 					<div
 						key={`stat-${index}-${card.title}`}
-						className="rounded-lg bg-background p-6 shadow"
+						className="rounded-lg bg-background-secondary p-6 shadow"
 					>
 						<div className="flex items-center justify-between">
 							<div>
@@ -81,7 +77,7 @@ export const DashboardStatsCards = ({
 									{card.value.toLocaleString()}
 								</p>
 							</div>
-							<div className={`rounded-lg p-3 ${card.bgColor}`}>
+							<div className="rounded-lg p-3">
 								<Icon className={`h-6 w-6 ${card.color}`} />
 							</div>
 						</div>
