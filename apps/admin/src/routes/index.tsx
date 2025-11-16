@@ -94,6 +94,10 @@ function RouteComponent() {
 								<p className="text-foreground/50">
 									Create your admin account to get started
 								</p>
+								<p className="font-medium text-amber-600 text-sm dark:text-amber-400">
+									⚠️ This registration form appears only once - save your
+									credentials!
+								</p>
 							</>
 						) : (
 							<p className="text-foreground/50">Sign in to Admin account</p>
