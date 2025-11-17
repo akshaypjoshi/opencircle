@@ -415,6 +415,7 @@ class AppSettings(BaseModel, table=True):
     app_name: str = Field(default="OpenCircle")
     app_logo_url: str | None = Field(default=None)
     enable_sign_up: bool = Field(default=True)
+    enable_opencircle_branding: bool = Field(default=True)
 
 
 class UserPresence(BaseModel, table=True):
