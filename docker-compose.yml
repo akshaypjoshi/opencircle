@@ -3,15 +3,13 @@ services:
     image: postgres:15-alpine
     container_name: opencircle-postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-opencircle}
-    # ports:
-    #   - "5432:5432"  # Commented out for production - no external access
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - opencircle_pg_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-opencircle}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,8 +20,6 @@ services:
   redis:
     image: redis:7-alpine
     container_name: opencircle-redis
-    # ports:
-    #   - "6379:6379"  # Commented out for production - no external access
     volumes:
       - opencircle_redis_data:/data
     healthcheck:
@@ -36,24 +32,19 @@ services:
       - opencircle-network
 
   migrate:
-    image: ghcr.io/devscalelabs/opencircle-api:latest
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     container_name: opencircle-migration
     command: >
       sh -c "
       echo 'Waiting for PostgreSQL to be available...' &&
-      while ! pg_isready -h postgres -p 5432 -U ${POSTGRES_USER:-postgres};
-      do sleep 2; done &&
+      PGPASSWORD=${POSTGRES_PASSWORD} pg_isready -h postgres -p 5432 -U ${POSTGRES_USER:-opencircle} &&
       echo '[MIGRATION] Running Alembic upgrade head...' &&
       uv run alembic upgrade head &&
       echo '[SUCCESS] Schema migration completed.'
       "
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-opencircle}
-      - DB_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-opencircle}
-      - ENVIRONMENT=production
-      - POSTGRES_USER=${POSTGRES_USER:-postgres}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB:-opencircle}
+    env_file: .env.prod
     depends_on:
       postgres:
         condition: service_healthy
@@ -62,25 +53,11 @@ services:
     restart: "no"
 
   api:
-    image: ghcr.io/devscalelabs/opencircle-api:latest
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     container_name: opencircle-api
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-opencircle}
-      - DB_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-opencircle}
-      - REDIS_URL=redis://redis:6379
-      - CELERY_BROKER_URL=redis://redis:6379
-      - CELERY_RESULT_BACKEND=redis://redis:6379
-      - ENVIRONMENT=production
-      - R2_ENDPOINT_URL=${R2_ENDPOINT_URL}
-      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
-      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
-      - R2_BUCKET_NAME=${R2_BUCKET_NAME}
-      - R2_PUBLIC_URL=${R2_PUBLIC_URL}
-      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
-      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
-      - GITHUB_REDIRECT_URI=${GITHUB_REDIRECT_URI}
-      - PLATFORM_URL=${PLATFORM_URL}
-      - RESEND_API_KEY=${RESEND_API_KEY}
+    env_file: .env.prod
     ports:
       - "8000:8000"
     depends_on:
@@ -100,22 +77,12 @@ services:
       - opencircle-network
 
   celery:
-    image: ghcr.io/devscalelabs/opencircle-api:latest
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
     container_name: opencircle-celery
     command: uv run celery -A src.core.celery_app worker --loglevel=info
-    environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-opencircle}
-      - DB_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-opencircle}
-      - REDIS_URL=redis://redis:6379
-      - CELERY_BROKER_URL=redis://redis:6379
-      - CELERY_RESULT_BACKEND=redis://redis:6379
-      - ENVIRONMENT=production
-      - R2_ENDPOINT_URL=${R2_ENDPOINT_URL}
-      - R2_ACCESS_KEY_ID=${R2_ACCESS_KEY_ID}
-      - R2_SECRET_ACCESS_KEY=${R2_SECRET_ACCESS_KEY}
-      - R2_BUCKET_NAME=${R2_BUCKET_NAME}
-      - R2_PUBLIC_URL=${R2_PUBLIC_URL}
-      - RESEND_API_KEY=${RESEND_API_KEY}
+    env_file: .env.prod
     depends_on:
       postgres:
         condition: service_healthy
@@ -128,7 +95,11 @@ services:
       - opencircle-network
 
   admin:
-    image: ghcr.io/devscalelabs/opencircle-admin:latest
+    build:
+      context: .
+      dockerfile: apps/admin/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     container_name: opencircle-admin
     ports:
       - "4000:80"
@@ -137,7 +108,11 @@ services:
       - opencircle-network
 
   platform:
-    image: ghcr.io/devscalelabs/opencircle-platform:latest
+    build:
+      context: .
+      dockerfile: apps/platform/Dockerfile
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:8000}
     container_name: opencircle-platform
     ports:
       - "3000:80"

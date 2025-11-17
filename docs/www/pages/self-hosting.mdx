@@ -31,51 +31,59 @@ sudo usermod -aG docker $USER
 
 **Windows:** Download from [docker.com](https://docker.com/products/docker-desktop)
 
-### Step 2: Create Environment Configuration (.env)
+### Step 2: Create Environment Configuration (.env.prod)
 
-In your deployment directory, create a `.env` file with the following variables:
+In your deployment directory, create a `.env.prod` file with the following variables:
 
 ```bash
-# Database
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=your_secure_password_here
-POSTGRES_DB=opencircle
+# ============================ Cloudflare R2 Object Storage ============================== #
+# You can generate a new access key from the Cloudflare dashboard
+R2_ENDPOINT_URL=
+R2_ACCESS_KEY_ID=
+R2_SECRET_ACCESS_KEY=
+R2_BUCKET_NAME=
+R2_PUBLIC_URL=
 
-# Redis
-REDIS_URL=redis://redis:6379
-CELERY_BROKER_URL=redis://redis:6379
-CELERY_RESULT_BACKEND=redis://redis:6379
-
-# Platform URLs
+# ===================================== Platform URL ===================================== #
+# This is the URL of the frontend application
+# Make sure to use HTTPS for production
 PLATFORM_URL=http://localhost:3000/
 ADMIN_URL=http://localhost:4000/
 VITE_API_URL=http://localhost:8000/
 
-# GitHub OAuth (required for authentication)
-GITHUB_CLIENT_ID=your_client_id
-GITHUB_CLIENT_SECRET=your_client_secret
+# =============================== Database URI for Backend =============================== #
+# Make sure it is aligned with Docker Database Configuration
+# You need to call the service name instead of "localhost"
+DB_URL="postgresql://opencircle:opencircle@postgres:5432/opencircle"
+
+REDIS_URL=redis://redis:6379
+CELERY_BROKER_URL=redis://redis:6379
+CELERY_RESULT_BACKEND=redis://redis:6379
+
+# =========================== Docker Database Configuration ============================== #
+POSTGRES_USER=opencircle
+POSTGRES_PASSWORD=opencircle
+POSTGRES_DB=opencircle
+
+# =============================== Resend API Key ======================================== #
+# This is service key for sending emails
+RESEND_API_KEY=
+
+# ================================= OAUTH Keys ========================================== #
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
 GITHUB_REDIRECT_URI=http://localhost:3000/github-callback/
 
-# Cloudflare R2 (for media storage)
-R2_ENDPOINT_URL=your_r2_endpoint
-R2_ACCESS_KEY_ID=your_access_key
-R2_SECRET_ACCESS_KEY=your_secret_key
-R2_BUCKET_NAME=opencircle
-R2_PUBLIC_URL=your_public_url
-
-# Email notifications (Resend)
-RESEND_API_KEY=your_resend_key
-
-# Google OAuth (optional)
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
-GOOGLE_REDIRECT_URI="http://localhost:8000/api/v1/auth/google/callback"
+GOOGLE_REDIRECT_URI=http://localhost:3000/google-callback/
 ```
 
 ### Step 3: Download Docker Compose Configuration
 
 ```bash
-curl -o docker-compose.yml https://raw.githubusercontent.com/devscalelabs/opencircle/refs/heads/main/docker-compose.yml
+git clone https://github.com/devscalelabs/opencircle.git
+cd opencircle
 ```
 
 ### Step 4: Start All Services
